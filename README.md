@@ -6,7 +6,7 @@
 | Lorie Xu | 327573 |
 | Valentin Porchet | 347219 |
 
-[Milestone 1](#milestones/M1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
+[Milestone 1](https://github.com/com-480-data-visualization/STEAMingHot/blob/master/milestones/Milestone1.pdf) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
 
 ## Milestone 1 (20th March, 5pm)
 
@@ -46,6 +46,10 @@ Based on a paper published by Hu and co. [1], the researchers used a dataset sim
 For this project, we plan to use easy-to-understand graphics and novel correlation pairings in order to better pinpoint the underlying causes of a game’s popularity, differing from more surface-level analysis. We also want to make our data visualization website about video games as playful as possible; after all, we’re gamers before we are developers.
 Our project is inspired by SteamDB, a huge database of Steam’s games inventory and filled with diverse information on each game such as genres, price history, ratings history, peak number of concurrent users (CCU) and much more.
 We will also take some inspiration on various types of graph animations such as bar chart races and build our own with the dataset. 
+
+
+### References 
+[1] Hu, W., Wang, Y. and Xia, R. Machine Learning-Based Steam Platform Game’s Popularity Analysis, 2024. DOI: 10.5220/0012853800004547
 
 
 ## Milestone 2 (17th April, 5pm)
