@@ -6,7 +6,7 @@
 | Lorie Xu | 327573 |
 | Valentin Porchet | 347219 |
 
-[Milestone 1](#M1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
+[Milestone 1](#milestones/M1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
 
 ## Milestone 1 (20th March, 5pm)
 
