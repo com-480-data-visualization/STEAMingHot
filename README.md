@@ -25,10 +25,10 @@ We will only be able to catch those when our custom dataset will be built.
 ### Problematic
 
 Our visualization is intended to help game developers understand what makes a game become popular based purely on data and statistics. This will be achieved with multiple tools, for example:
-Game-specific statistics, such as:
-a heatmap that shows how the target audience for a game was dispatched across the world
-insights on text reviews, positive VS negative reviews, recommendations
-peak-playing times depending on periods of the year or new game patches/versions.
+- Game-specific statistics, such as, but not limited to:
+  - a heatmap that shows how the target audience for a game was dispatched across the world
+  - insights on text reviews, positive VS negative reviews, recommendations
+  - peak-playing times depending on periods of the year or new game patches/versions.
 - A bar chart race to visualize the most played games on Steam, across the years.
 - A map of the world that gives country-specific statistics about games (most played games, categories, genres).
 - A correlation between games’  buying peaks and discounts or release date.
