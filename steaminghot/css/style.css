@@ -1,0 +1,131 @@
+:root {
+  --background: #1e1e1e;
+  --surface: rgb(47, 47, 47);
+  --primaryAccent: #8429ca;
+  --text: #ffffff;
+  --secondaryText: #8b8b8b;
+}
+
+@font-face {
+  font-family: "title-font";
+  src: url("../fonts/TT\ Octosquares\ Trial\ Regular.ttf");
+}
+@font-face {
+  font-family: "subtitle-font";
+  src: url("../fonts/Gondens\ DEMO.otf");
+}
+@font-face {
+  font-family: "body-font";
+  src: url("../fonts/Rochilo-Regular.ttf");
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  font-family: "body-font", sans-serif;
+  margin: 0;
+}
+
+nav {
+  background: var(--surface);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+nav a {
+  color: var(--primaryAccent);
+  font-family: "subtitle-font", sans-serif;
+  text-decoration: none;
+  font-weight: lighter;
+  text-align: center;
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+}
+
+.nav-divider {
+  width: 1px;
+  background: var(--secondaryText);
+  height: 2em;
+}
+
+#title {
+  text-align: center;
+  background:
+    radial-gradient(
+      ellipse 90% 80% at 50% 50%,
+      var(--background) 0%,
+      transparent 90%
+    ),
+    radial-gradient(circle, var(--secondaryText) 1px, transparent 1px);
+  background-size:
+    cover,
+    28px 28px;
+}
+
+section {
+  padding: 4rem 2rem;
+  border-bottom: 1px solid var(--surface);
+}
+
+h1 {
+  color: var(--primaryAccent);
+  text-align: center;
+  font-family: "title-font", sans-serif;
+  font-weight: bolder;
+  font-size: 5rem;
+  margin-bottom: -5px;
+  text-shadow:
+    -1px 1px 0px rgba(200, 180, 255, 0.8),
+    -2px 2px 0px rgba(200, 180, 255, 0.75),
+    -3px 3px 0px rgba(200, 180, 255, 0.7),
+    -4px 4px 0px rgba(200, 180, 255, 0.6),
+    -5px 5px 0px rgba(200, 180, 255, 0.55),
+    -6px 6px 0px rgba(200, 180, 255, 0.5),
+    -7px 7px 0px rgba(200, 180, 255, 0.4),
+    -8px 8px 0px rgba(200, 180, 255, 0.35),
+    -9px 9px 0px rgba(200, 180, 255, 0.3),
+    -10px 10px 0px rgba(200, 180, 255, 0.2),
+    -11px 11px 0px rgba(200, 180, 255, 0.15),
+    -12px 12px 10px rgba(0, 0, 0, 0.5);
+}
+
+h2 {
+  color: var(--primaryAccent);
+  font-family: "subtitle-font", sans-serif;
+  font-weight: lighter;
+  font-size: 1.2rem;
+  letter-spacing: 0.05em;
+}
+
+p {
+  color: var(--text);
+}
+
+.subtitle {
+  font-family: "subtitle-font", sans-serif;
+  font-size: 1.2rem;
+  font-style: italic;
+  font-weight: normal;
+  text-align: center;
+}
+
+.chart-placeholder {
+  background: var(--surface);
+  border: 1px dashed var(--secondaryText);
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondaryText);
+  margin-top: 2rem;
+}
+
+.signature {
+  text-align: right;
+  font-style: italic;
+  color: var(--secondaryText);
+  margin-top: 2rem;
+}
