@@ -1,0 +1,4 @@
+Currently, this is an older version of the dataset, but a fresh version will be processed soon.
+https://www.kaggle.com/datasets/fronkongames/steam-games-dataset/data?select=games.json
+
+The dataset should be saved as "games.json" in the "Data" folder (should be ignored by git).
