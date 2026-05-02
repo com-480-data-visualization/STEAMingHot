@@ -1,1 +1,3 @@
 /Data/games.json
+/Data/games.msgpack
+__pycache__/
