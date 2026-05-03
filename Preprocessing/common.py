@@ -3,11 +3,21 @@ from typing import Any, Callable
 
 MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 MONTH_TO_NUM = {month: i + 1 for i, month in enumerate(MONTHS)}
+GREEN = '\033[32m'
+BLUE = '\033[34m'
+RESET = '\033[0m'
 
 # Type aliases for better input/output clarity in main pipeline functions
 type Dataset = dict[str, Game]
 type RawDataset = dict[str, Any]
 
+def log_step(at:int, total:int, text: str, done=False) -> None:
+    """Format a log message for a pipeline step."""
+    prefix = f'Step {at}/{total}:'
+    if done:
+        print(f'{GREEN}✓ {prefix}{RESET} {text}')
+    else:
+        print(f'{BLUE}→ {prefix}{RESET} {text}')
 
 def real_user_score(game: Game) -> float:
     """Calculate the real user score for a game, based on the number of positive and negative reviews."""

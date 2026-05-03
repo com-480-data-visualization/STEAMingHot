@@ -4,7 +4,10 @@ from dataclasses import asdict
 
 def reformat_dataset(source_dataset: Dataset, fields_to_drop: list[str], verbose=True) -> RawDataset:
     """Reformat the dataset by dropping unwanted fields and converting it into a more compact format."""
-    #todo: doc
+    
+    if verbose:
+        log_step(3, 4, f'Reformatting dataset by dropping {len(fields_to_drop)} fields.')
+
     games_data: list[dict] = [drop_fields(game, fields_to_drop) for game in source_dataset.values()]
     fields_schema: list[str] = list(games_data[0].keys()) # all games have the same fields
     rows = [list(gd.values()) for gd in games_data]
@@ -13,8 +16,9 @@ def reformat_dataset(source_dataset: Dataset, fields_to_drop: list[str], verbose
         'schema': fields_schema,
         'games': rows
     }
+
     if verbose:
-        print(f'Reformatted dataset. Original number of fields per game: {len(output_data["schema"]) + len(fields_to_drop)}, new number of fields: {len(output_data["schema"])}.')
+        log_step(3, 4, f'Reformatted dataset. Original number of fields per game: {len(output_data["schema"]) + len(fields_to_drop)}, new number of fields: {len(output_data["schema"])}.', done=True)
 
     return output_data
 

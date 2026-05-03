@@ -3,6 +3,10 @@ import json
 from common import *
 def load_dataset(datapath: str, verbose = True) -> Dataset:
     """Load the dataset from a JSON file and return it as a dict of Game objects."""
+
+    if verbose:
+        log_step(1, 4, f'Loading dataset from {datapath}...')
+        
     dataset_: RawDataset = {}
     if os.path.exists(datapath):
         with open(datapath, 'r', encoding='utf-8') as fin:
@@ -17,6 +21,6 @@ def load_dataset(datapath: str, verbose = True) -> Dataset:
         dataset[str(game_id)] = Game(game_id=game_id, **game_data)
 
     if verbose:
-        print(f'Loaded {len(dataset)} games from {datapath}.')
+        log_step(1, 4, f'Loaded dataset with {len(dataset)} games', done=True)
     
     return dataset
