@@ -6,7 +6,7 @@ MONTH_TO_NUM = {month: i + 1 for i, month in enumerate(MONTHS)}
 DATA_PATH = 'data/games.json'
 
 type Dataset = dict[str, Game]
-type RawDataset = dict[str, dict[str, Any]] 
+type RawDataset = dict[str, Any]
 
 def real_user_score(game: Game) -> float:
     """Calculate the real user score for a game, based on the number of positive and negative reviews."""

@@ -14,9 +14,3 @@ def filter_dataset(
     if verbose:
         print(f'Filtered dataset from {len(source_dataset)} to {len(new_ds)} games.')
     return new_ds
-
-# Here is an example of predicates list I tried
-DEFAULT_PREDICATES = [
-    lambda game: (game.positive + game.negative) >= 200, 
-    # todo: add more predicates here
-    ]
