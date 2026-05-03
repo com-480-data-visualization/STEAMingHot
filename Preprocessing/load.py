@@ -2,6 +2,7 @@ import os
 import json
 from common import *
 def load_dataset(datapath: str, verbose = True) -> Dataset:
+    """Load the dataset from a JSON file and return it as a dict of Game objects."""
     dataset_: RawDataset = {}
     if os.path.exists(datapath):
         with open(datapath, 'r', encoding='utf-8') as fin:

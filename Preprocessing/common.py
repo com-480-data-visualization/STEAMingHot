@@ -3,10 +3,11 @@ from typing import Any, Callable
 
 MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 MONTH_TO_NUM = {month: i + 1 for i, month in enumerate(MONTHS)}
-DATA_PATH = 'data/games.json'
 
+# Type aliases for better input/output clarity in main pipeline functions
 type Dataset = dict[str, Game]
 type RawDataset = dict[str, Any]
+
 
 def real_user_score(game: Game) -> float:
     """Calculate the real user score for a game, based on the number of positive and negative reviews."""
@@ -15,8 +16,8 @@ def real_user_score(game: Game) -> float:
         return 0.0
     return (game.positive / total_reviews) * 100.0
 
-""" 'Nov 16, 2018' -> {day: 16, month: 11, year: 2018} """
 def parse_release_date(date_str: str) -> dict[str, int]: 
+    """ 'Nov 16, 2018' -> {day: 16, month: 11, year: 2018} """
     # Sperate the ","
     parts = date_str.split(',')
     if len(parts) != 2:
@@ -33,6 +34,7 @@ def parse_release_date(date_str: str) -> dict[str, int]:
         raise ValueError(f'Invalid month: {month_str} in date: {date_str}')
     day = int(day_str)
     return {'day': day, 'month': month, 'year': year}
+
 
 def human_readable_estimated_owners(estimated_owners_str: str) -> str:
     """ '2000-1000000' -> '2K-1M' """
@@ -54,46 +56,46 @@ def human_readable_estimated_owners(estimated_owners_str: str) -> str:
 
 @dataclass
 class Game:
-    game_id: str
-    name: str
-    release_date: str
-    required_age: int
-    price: float
-    dlc_count: int
-    detailed_description: str
-    about_the_game: str
-    short_description: str
-    reviews: str
-    header_image: str
-    website: str
-    support_url: str
-    support_email: str
-    windows: bool
-    mac: bool
-    linux: bool
-    metacritic_score: int
-    metacritic_url: str
-    achievements: int
-    recommendations: int
-    notes: str
-    supported_languages: list
-    full_audio_languages: list
-    packages: list[dict]
-    developers: list
-    publishers: list
-    categories: list
-    genres: list
-    screenshots: list
-    movies: list
-    user_score: int
-    score_rank: str
-    positive: int
-    negative: int
-    estimated_owners: str
-    average_playtime_forever: int
-    average_playtime_2weeks: int
-    median_playtime_forever: int
-    median_playtime_2weeks: int
-    discount: int
-    peak_ccu: int
-    tags: list 
+    game_id: str                    # Unique identifier for the application.
+    name: str                       # Title of the game.
+    release_date: str               # Official release date.
+    required_age: int               # Minimum age requirement (0 if none).
+    price: float                    # Cost in USD (0.0 if free).
+    dlc_count: int                  # Total number of downloadable content items.
+    detailed_description: str       # Full description.
+    about_the_game: str             # Similar to full description.
+    short_description: str          # Brief plain-text description.
+    reviews: str                    # Review data (field accessed but not unpacked in script).
+    header_image: str               # URL to the store header image.
+    website: str                    # Official game website URL.
+    support_url: str                # Support website URL.
+    support_email: str              # Contact email for support.
+    windows: bool                   # Windows OS compatibility.
+    mac: bool                       # macOS compatibility.
+    linux: bool                     # Linux compatibility.
+    metacritic_score: int           # Score from Metacritic (0 if none).
+    metacritic_url: str             # URL to Metacritic review page.
+    achievements: int               # Total number of achievements.
+    recommendations: int            # Total user recommendations.
+    notes: str                      # Extra content information/warnings.
+    supported_languages: list       # Comma-separated list of languages.
+    full_audio_languages: list      # Comma-separated list of languages with audio.
+    packages: list[dict]            # list of objects: title (string), description (string), subs (list of objects with text, description, price).
+    developers: list                # list of strings: Names of development entities.
+    publishers: list                # list of strings: Names of publishing entities.
+    categories: list                # list of strings: Feature categories (e.g., "Multi-player").
+    genres: list                    # list of strings: Game genres (e.g., "Action").
+    screenshots: list               # list of strings: URLs to game screenshots (Note: script uses spelling "scrennshots" in some places).
+    movies: list                    # list of strings: URLs to game trailers/videos.
+    user_score: int                 # Internal user score (0 if none).
+    score_rank: str                 # Rank based on user reviews.
+    positive: int                   # Count of positive votes.
+    negative: int                   # Count of negative votes.
+    estimated_owners: str           # Range of owners (e.g., "0 - 20000").
+    average_playtime_forever: int   # Average playtime in minutes (since 2009).
+    average_playtime_2weeks: int    # Average playtime in minutes (last 14 days).
+    median_playtime_forever: int    # Median playtime in minutes (since 2009).
+    median_playtime_2weeks: int     # Median playtime in minutes (last 14 days).
+    discount: int                   # Discount percentage.
+    peak_ccu: int                   # Yesterday's peak concurrent users.
+    tags: list                      # list/dict: User-defined tags (keys represent tag names). 

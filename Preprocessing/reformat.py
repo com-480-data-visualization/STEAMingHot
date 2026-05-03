@@ -3,6 +3,7 @@ from dataclasses import asdict
 
 
 def reformat_dataset(source_dataset: Dataset, fields_to_drop: list[str], verbose=True) -> RawDataset:
+    """Reformat the dataset by dropping unwanted fields and converting it into a more compact format."""
     #todo: doc
     games_data: list[dict] = [drop_fields(game, fields_to_drop) for game in source_dataset.values()]
     fields_schema: list[str] = list(games_data[0].keys()) # all games have the same fields
