@@ -7,7 +7,7 @@ from common import *
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_FOLDER = os.path.join(PROJECT_ROOT, 'data')
 ORIGINAL_DATASET_PATH = os.path.join(DATA_FOLDER, 'games.json')
-OUTPUT_DATASET_PATH = os.path.join(DATA_FOLDER, 'games.msgpack')
+OUTPUT_DATASET_PATH = os.path.join(PROJECT_ROOT, 'steaminghot/public/data/games.msgpack')
 
 @dataclass
 class Config:
