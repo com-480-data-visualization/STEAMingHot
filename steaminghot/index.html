@@ -33,89 +33,17 @@
       <h2>GAME INSIGHTS</h2>
       <p>Search a game and learn more about what makes it popular!</p>
       
-      <div class="game-search">
-        <input type="text" placeholder="Enter game name..." class="search-input"/>
-        <button class="search-button">Search</button>
-      </div>
-
-      <div class="single-game-layout">
-        <div class="single-game-card">
-          <img src="images/image.png" alt="Clair Obscur: Expedition 33 cover art" class="game-cover"/>
-
-          <h3>Clair Obscur: Expedition 33</h3>
-          <p class="game-description">
-            Lead the members of Expedition 33 on their quest to destroy the Paintress 
-            so that she can never paint death again. Explore a world of wonders inspired 
-            by Belle Époque France and battle unique enemies in this turn-based RPG with 
-            real-time mechanics.
-          </p>
-
-          <div class="game-metadata">
-            <p><span>Release Date:</span> Apr 24, 2025</p>
-            <p><span>Required Age:</span> 17</p>
-            <p><span>Price:</span> $39.99</p>
-            <p><span>Genres:</span> Action, RPG</p>
-            <p><span>Positive Reviews:</span> 106216</p>
-            <p><span>Negative Reviews:</span> 4816</p>
-            <p><span>Positive Review Ratio:</span> 95.66%</p>
-            <p><span>Estimated Owners:</span> 2M - 5M</p>
-            <p><span>Peak CCU:</span> 27880</p>
-          </div>
-
-          <div class="game-tags">
-            <span>Turn-Based Combat</span>
-            <span>Story Rich</span>
-            <span>Fantasy</span>
-            <span>RPG</span>
-            <span>Exploration</span>
-            <span>JRPG</span>
-            <span>Adventure</span>
-            <span>Lore-Rich</span>
-            <span>Singleplayer</span>
-            <span>Action RPG</span>
-            <span>Souls-like</span>
-            <span>Party-Based RPG</span>
-            <span>Dark Fantasy</span>
-            <span>Character Customization</span>
-            <span>3D</span>
-            <span>Post-apocalyptic</span>
-            <span>Great Soundtrack</span>
-            <span>Narration</span>
-            <span>Realistic</span>
-            <span>Action</span>
-          </div>
-        </div>
-
-        <img src="dummies/comparison.png" alt="Comparison dummy" class="game-comparison"/>
-      </div>
+      <div class="viz1">
+        <!-- D3 viz1 will be rendered here -->
     </section>
 
     <section id="overview">
       <h2>Overview</h2>
       <p>Get general statistics about all steam games</p>
-
-      <div class="dummy-toolbar">
-        <form>
-          <label>Set data for x axis:</label>
-          <select>
-            <option>Price (USD)</option>
-            <option>Just</option>
-            <option>a</option>
-            <option>Demo</option>
-          </select>
-        </form>
-        <form>
-          <label>Set data for y axis:</label>
-          <select>
-            <option>User score (0-100)</option>
-            <option>Still</option>
-            <option>a</option>
-            <option>Demo</option>
-            <option>😅</option>
-          </select>
-        </form>
+      <div class="viz2">
+        <!-- D3 viz2 will be rendered here -->
       </div>
-      <img src="dummies/hexbin.png" alt="Hexbin chart dummy" />
+
     </section>
 
     <section id="developingTrends">
@@ -123,23 +51,10 @@
       <p>
         See what kind of games are being released and when, and how that has evolved over the years.
       </p>
-      <div class="dummy-toolbar">
-        <form>
-          <label>Select year:</label>
-          <input
-            type="range"
-            id="yearSlider"
-            name="year"
-            min="2000"
-            max="2020"
-            step="1"
-            value="2020"
-            oninput="document.getElementById('yearValue').textContent = this.value"
-          />
-          <output id="yearValue" for="yearSlider">2020</output>
-        </form>
+
+      <div class="viz3">
+        <!-- D3 viz3 will be rendered here -->
       </div>
-      <img src="dummies/2020.png" alt="2020 releases dummy" />
     </section>
 
   
