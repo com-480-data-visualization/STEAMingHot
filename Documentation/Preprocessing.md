@@ -34,4 +34,4 @@ The main settings are:
 
 ## Output
 
-After the pipeline finishes, you get a compact MessagePack file containing the cleaned dataset. This format is faster to load and smaller than the original JSON.
+After the pipeline finishes, you get a compact MessagePack file containing the cleaned dataset. This format is faster to load and smaller than the original JSON. The pipeline is set by default to directly export the file to the `steaminghot/public/data` directory, so that it can be easily loaded by the web app.
