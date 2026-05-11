@@ -2,7 +2,7 @@ import { decode } from "@msgpack/msgpack";
 import { Game } from "./types";
 
 export async function loadData(): Promise<Game[]> {
-  const response = await fetch("./games.msgpack");
+  const response = await fetch("./data/games.msgpack");
   const buffer = await response.arrayBuffer();
   const compact = decode(new Uint8Array(buffer)) as {
     schema: string[];
@@ -16,6 +16,6 @@ export async function loadData(): Promise<Game[]> {
     for (let i = 0; i < schema.length; i++) {
       obj[schema[i]] = gameData[i];
     }
-    return obj as Game;
+    return obj as unknown as Game;
   });
 }
