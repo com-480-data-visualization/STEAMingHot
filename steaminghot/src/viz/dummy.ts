@@ -6,15 +6,25 @@
  * 
  */
 
+import * as d3 from "d3";
 import { Game } from "../types";
 
+interface PriceRange {
+    label: string;
+    min: number;
+    max: number;
+}
 
+interface ChartData {
+    label: string;
+    count: number;
+}
 
 export function initDummy(container: HTMLElement, data: Game[]): void {
     console.log("Dummy viz initialized");
 
-    // Create a simple histogram of game prices
-    const priceRanges = [
+    // Define price ranges
+    const priceRanges: PriceRange[] = [
         { label: "Free", min: 0, max: 0.01 },
         { label: "$0-5", min: 0.01, max: 5 },
         { label: "$5-10", min: 5, max: 10 },
@@ -24,70 +34,85 @@ export function initDummy(container: HTMLElement, data: Game[]): void {
     ];
 
     // Count games in each price range
-    const counts = priceRanges.map(range => 
-        data.filter(game => game.price >= range.min && game.price < range.max).length
-    );
+    const chartData: ChartData[] = priceRanges.map(range => ({
+        label: range.label,
+        count: data.filter(game => game.price >= range.min && game.price < range.max).length
+    }));
 
-    const maxCount = Math.max(...counts);
-    const barHeight = 200;
-    const barWidth = 50;
-    const spacing = 20;
-    const padding = 40;
+    // Chart dimensions
+    const margin = { top: 40, right: 20, bottom: 40, left: 50 };
+    const width = 800 - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
 
     // Create SVG
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", String(padding * 2 + priceRanges.length * (barWidth + spacing)));
-    svg.setAttribute("height", String(barHeight + padding * 2));
-    svg.setAttribute("style", "border: 1px solid #ccc;");
+    const svg = d3.select(container)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .style("border", "1px solid #ccc");
 
-    // Draw bars
-    priceRanges.forEach((range, i) => {
-        const count = counts[i];
-        const height = (count / maxCount) * barHeight;
-        const x = padding + i * (barWidth + spacing);
-        const y = padding + barHeight - height;
+    // Create main group
+    const g = svg.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
-        // Draw bar
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", String(x));
-        rect.setAttribute("y", String(y));
-        rect.setAttribute("width", String(barWidth));
-        rect.setAttribute("height", String(height));
-        rect.setAttribute("fill", "#4a90e2");
-        rect.setAttribute("stroke", "#2e5c8a");
-        svg.appendChild(rect);
+    // Create scales
+    const xScale = d3.scaleBand()
+        .domain(chartData.map(d => d.label))
+        .range([0, width])
+        .padding(0.2);
 
-        // Draw label
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", String(x + barWidth / 2));
-        text.setAttribute("y", String(padding + barHeight + 20));
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("font-size", "12");
-        text.setAttribute("fill", "#333");
-        text.textContent = range.label;
-        svg.appendChild(text);
+    const yScale = d3.scaleLinear()
+        .domain([0, d3.max(chartData, d => d.count) || 0])
+        .range([height, 0]);
 
-        // Draw count label
-        const countText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        countText.setAttribute("x", String(x + barWidth / 2));
-        countText.setAttribute("y", String(y - 5));
-        countText.setAttribute("text-anchor", "middle");
-        countText.setAttribute("font-size", "11");
-        countText.setAttribute("fill", "#666");
-        countText.textContent = String(count);
-        svg.appendChild(countText);
-    });
+    // Create bars
+    g.selectAll(".bar")
+        .data(chartData)
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", d => xScale(d.label) || 0)
+        .attr("y", d => yScale(d.count))
+        .attr("width", xScale.bandwidth())
+        .attr("height", d => height - yScale(d.count))
+        .attr("fill", "#4a90e2")
+        .attr("stroke", "#2e5c8a");
 
-    // Draw title
-    const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    title.setAttribute("x", String(padding + (priceRanges.length * (barWidth + spacing) - spacing) / 2));
-    title.setAttribute("y", String(25));
-    title.setAttribute("text-anchor", "middle");
-    title.setAttribute("font-size", "16");
-    title.setAttribute("font-weight", "bold");
-    title.setAttribute("fill", "#ffffff");
-    title.textContent = "Game Price Distribution";
-    svg.appendChild(title);
+    // Add value labels on bars
+    g.selectAll(".bar-label")
+        .data(chartData)
+        .enter()
+        .append("text")
+        .attr("class", "bar-label")
+        .attr("x", d => (xScale(d.label) || 0) + (xScale.bandwidth() / 2))
+        .attr("y", d => yScale(d.count) - 5)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "11")
+        .attr("fill", "#666")
+        .text(d => d.count);
 
-    container.appendChild(svg);
+    // Add X axis
+    const xAxis = d3.axisBottom(xScale);
+    g.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(xAxis)
+        .attr("font-size", "12")
+        .attr("color", "#333");
+
+    // Add Y axis
+    const yAxis = d3.axisLeft(yScale);
+    g.append("g")
+        .call(yAxis)
+        .attr("font-size", "12")
+        .attr("color", "#333");
+
+    // Add title
+    svg.append("text")
+        .attr("x", (width + margin.left + margin.right) / 2)
+        .attr("y", 25)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "16")
+        .attr("font-weight", "bold")
+        .attr("fill", "#333")
+        .text("Game Price Distribution");
 }
