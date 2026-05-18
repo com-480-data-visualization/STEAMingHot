@@ -43,11 +43,29 @@
 <!-------------------------------- DELETE ME! ---------------------------->
 
     <section id="singleGame">
-      <h2>GAME INSIGHTS</h2>
+      <h2>Game Insights</h2>
       <p>Search a game and learn more about what makes it popular!</p>
-      
+
+      <div class="game-search">
+        <input
+          type="text"
+          placeholder="Enter game name..."
+          class="search-input"
+        />
+        <button class="search-button">Search</button>
+        <button class="search-button">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M15.5 1h-8C6.12 1 5 2.12 5 3.5v17C5 21.88 6.12 23 7.5 23h8c1.38 0 2.5-1.12 2.5-2.5v-17C18 2.12 16.88 1 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="search-suggestions"></div>
+      <div class="search-no-results" style="display: none;"></div>
+
       <div class="viz1">
         <!-- D3 viz1 will be rendered here -->
+      </div>
     </section>
 
     <section id="overview">
@@ -60,7 +78,7 @@
     </section>
 
     <section id="developingTrends">
-      <h2> Developping trends </h2>
+      <h2> Developping Trends </h2>
       <p>
         See what kind of games are being released and when, and how that has evolved over the years.
       </p>
