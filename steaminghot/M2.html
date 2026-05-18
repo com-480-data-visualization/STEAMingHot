@@ -10,9 +10,17 @@
   <body>
     <!-- Navigation to specific graphs -->
     <nav>
-      <a href="https://github.com/com-480-data-visualization/STEAMingHot" class="github-icon" title="GitHub Repository" target="_blank" rel="noopener noreferrer">
+      <a
+        href="https://github.com/com-480-data-visualization/STEAMingHot"
+        class="github-icon"
+        title="GitHub Repository"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
-          <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943" />
+          <path
+            d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"
+          />
         </svg>
       </a>
       <a href="#singleGame">GAME INSIGHTS</a>
@@ -30,24 +38,32 @@
     </section>
 
     <section id="singleGame">
-      <h2>GAME INSIGHTS</h2>
+      <h2>Game Insights</h2>
       <p>Search a game and learn more about what makes it popular!</p>
-      
+
       <div class="game-search">
-        <input type="text" placeholder="Enter game name..." class="search-input"/>
+        <input
+          type="text"
+          placeholder="Enter game name..."
+          class="search-input"
+        />
         <button class="search-button">Search</button>
       </div>
 
       <div class="single-game-layout">
         <div class="single-game-card">
-          <img src="public/images/image.png" alt="Clair Obscur: Expedition 33 cover art" class="game-cover"/>
+          <img
+            src="public/images/image.png"
+            alt="Clair Obscur: Expedition 33 cover art"
+            class="game-cover"
+          />
 
           <h3>Clair Obscur: Expedition 33</h3>
           <p class="game-description">
-            Lead the members of Expedition 33 on their quest to destroy the Paintress 
-            so that she can never paint death again. Explore a world of wonders inspired 
-            by Belle Époque France and battle unique enemies in this turn-based RPG with 
-            real-time mechanics.
+            Lead the members of Expedition 33 on their quest to destroy the
+            Paintress so that she can never paint death again. Explore a world
+            of wonders inspired by Belle Époque France and battle unique enemies
+            in this turn-based RPG with real-time mechanics.
           </p>
 
           <div class="game-metadata">
@@ -86,7 +102,11 @@
           </div>
         </div>
 
-        <img src="public/dummies/comparison.png" alt="Comparison dummy" class="game-comparison"/>
+        <img
+          src="public/dummies/comparison.png"
+          alt="Comparison dummy"
+          class="game-comparison"
+        />
       </div>
     </section>
 
@@ -119,9 +139,10 @@
     </section>
 
     <section id="developingTrends">
-      <h2> Developping trends </h2>
+      <h2>Developping Trends</h2>
       <p>
-        See what kind of games are being released and when, and how that has evolved over the years.
+        See what kind of games are being released and when, and how that has
+        evolved over the years.
       </p>
       <div class="dummy-toolbar">
         <form>
@@ -134,15 +155,15 @@
             max="2020"
             step="1"
             value="2020"
-            oninput="document.getElementById('yearValue').textContent = this.value"
+            oninput="
+              document.getElementById('yearValue').textContent = this.value
+            "
           />
           <output id="yearValue" for="yearSlider">2020</output>
         </form>
       </div>
       <img src="public/dummies/2020.png" alt="2020 releases dummy" />
     </section>
-
-  
 
     <section id="about">
       <h2>About</h2>
@@ -157,6 +178,6 @@
       </p>
     </section>
 
-  <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
