@@ -157,13 +157,7 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
   const noResultsContainer =
     document.querySelector<HTMLElement>(".search-no-results");
 
-  if (
-    !searchInput ||
-    !searchButton ||
-    !searchClear ||
-    !suggestionsContainer ||
-    !noResultsContainer
-  ) {
+  if (!searchInput || !searchButton || !suggestionsContainer || !noResultsContainer) {
     console.error("Search UI elements not found");
     return;
   }
@@ -213,6 +207,15 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
       performSearchAndDisplay();
     }
   });
+
+  if (searchClear) {
+    searchClear.addEventListener("click", () => {
+      searchInput.value = "";
+      clearSuggestions(suggestionsContainer);
+      noResultsContainer.style.display = "none";
+      displayGameCard(container, initialGame);
+    });
+  }
 
   console.log("Viz1 initialized");
 }
