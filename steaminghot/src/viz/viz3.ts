@@ -91,47 +91,39 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   const minYear = 2010;
   const maxYear = 2025;
 
-  const viewOptions = [
-    {
-      label: "Genres",
-      accessor: (game: Game) => game.genres,
-    },
-    {
-      label: "Games",
-      accessor: (game: Game) => [game.name],
-    },
+  const aggregationModes = [
+    { label: "Year Only", isCumulative: false },
+    { label: "Cumulative", isCumulative: true },
   ];
 
   const propertyOptions = [
     {
-      label: "Estimated Owners",
-      extractor: (game: Game) => extractPlayerCount(game.estimated_owners),
-    },
-    {
-      label: "Peak CCU",
-      extractor: (game: Game) => game.peak_ccu || 0,
-    },
-    {
-      label: "Average Playtime Forever",
-      extractor: (game: Game) => game.average_playtime_forever || 0,
-    },
-    {
-      label: "Average Playtime 2 Weeks",
-      extractor: (game: Game) => game.average_playtime_2weeks || 0,
-    },
-    {
-      label: "Median Playtime Forever",
-      extractor: (game: Game) => game.median_playtime_forever || 0,
-    },
-    {
-      label: "User Score",
-      extractor: (game: Game) => game.user_score || 0,
+      label: "Number of Releases",
+      extractor: (game: Game) => 1,
     },
   ];
 
-  let selectedView = viewOptions[0];
+  let selectedAggregationMode = aggregationModes[0];
+
+  function convertToCumulative(data: GenreYearData[]): GenreYearData[] {
+    const cumulativeMap = new Map<string, number>();
+    const sortedData = [...data].sort((a, b) => a.year - b.year);
+    const result: GenreYearData[] = [];
+    sortedData.forEach((entry) => {
+      const key = entry.genre;
+      const currentSum = cumulativeMap.get(key) || 0;
+      const newSum = currentSum + entry.metricValue;
+      cumulativeMap.set(key, newSum);
+      result.push({ year: entry.year, genre: entry.genre, metricValue: newSum });
+    });
+    return result;
+  }
+
   let selectedProperty = propertyOptions[0];
-  let aggregatedData = aggregateLabelData(data, selectedView.accessor, selectedProperty.extractor);
+  let aggregatedData = aggregateLabelData(data, (game: Game) => game.genres, selectedProperty.extractor);
+  if (selectedAggregationMode.isCumulative) {
+    aggregatedData = convertToCumulative(aggregatedData);
+  }
   let filteredData = aggregatedData.filter(
     (d) => d.year >= minYear && d.year <= maxYear
   );
@@ -187,52 +179,37 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   propertyContainer.style.borderRadius = "8px";
   propertyContainer.style.maxWidth = "520px";
 
-  const propertyLabel = document.createElement("label");
-  propertyLabel.textContent = "Metric:";
-  propertyLabel.style.fontWeight = "bold";
-  propertyLabel.style.minWidth = "70px";
+  const viewTitle = document.createElement("span");
+  viewTitle.textContent = "Genre Releases - ";
+  viewTitle.style.fontWeight = "bold";
+  viewTitle.style.fontSize = "14px";
+  viewTitle.style.color = "#8429ca";
 
-  const propertySelect = document.createElement("select");
-  propertySelect.style.flex = "1";
-  propertySelect.style.padding = "8px 10px";
-  propertySelect.style.border = "1px solid #ccc";
-  propertySelect.style.borderRadius = "6px";
-  propertySelect.style.background = "#fff";
-  propertySelect.style.color = "#000";
-  propertySelect.style.cursor = "pointer";
+  const aggregationLabel = document.createElement("label");
+  aggregationLabel.textContent = "Mode:";
+  aggregationLabel.style.fontWeight = "bold";
+  aggregationLabel.style.minWidth = "50px";
+  aggregationLabel.style.color = "#8429ca";
 
-  const viewLabel = document.createElement("label");
-  viewLabel.textContent = "View:";
-  viewLabel.style.fontWeight = "bold";
-  viewLabel.style.minWidth = "55px";
+  const aggregationSelect = document.createElement("select");
+  aggregationSelect.style.flex = "1";
+  aggregationSelect.style.padding = "8px 10px";
+  aggregationSelect.style.border = "1px solid #ccc";
+  aggregationSelect.style.borderRadius = "6px";
+  aggregationSelect.style.background = "#fff";
+  aggregationSelect.style.color = "#000";
+  aggregationSelect.style.cursor = "pointer";
 
-  const viewSelect = document.createElement("select");
-  viewSelect.style.flex = "1";
-  viewSelect.style.padding = "8px 10px";
-  viewSelect.style.border = "1px solid #ccc";
-  viewSelect.style.borderRadius = "6px";
-  viewSelect.style.background = "#fff";
-  viewSelect.style.color = "#000";
-  viewSelect.style.cursor = "pointer";
-
-  propertyOptions.forEach((option, index) => {
+  aggregationModes.forEach((option, index) => {
     const opt = document.createElement("option");
     opt.value = String(index);
     opt.text = option.label;
-    propertySelect.appendChild(opt);
+    aggregationSelect.appendChild(opt);
   });
 
-  viewOptions.forEach((option, index) => {
-    const opt = document.createElement("option");
-    opt.value = String(index);
-    opt.text = option.label;
-    viewSelect.appendChild(opt);
-  });
-
-  propertyContainer.appendChild(propertyLabel);
-  propertyContainer.appendChild(propertySelect);
-  propertyContainer.appendChild(viewLabel);
-  propertyContainer.appendChild(viewSelect);
+  propertyContainer.appendChild(viewTitle);
+  propertyContainer.appendChild(aggregationLabel);
+  propertyContainer.appendChild(aggregationSelect);
   container.appendChild(propertyContainer);
 
   // slider
@@ -250,6 +227,7 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   sliderLabel.textContent = "Year:";
   sliderLabel.style.fontWeight = "bold";
   sliderLabel.style.minWidth = "50px";
+  sliderLabel.style.color = "#8429ca";
 
   const slider = document.createElement("input");
   slider.type = "range";
@@ -310,7 +288,10 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   yAxisGroup.selectAll("path, line").attr("stroke", "#fff");
 
   function refreshChartData(): void {
-    aggregatedData = aggregateLabelData(data, selectedView.accessor, selectedProperty.extractor);
+    aggregatedData = aggregateLabelData(data, (game: Game) => game.genres, selectedProperty.extractor);
+    if (selectedAggregationMode.isCumulative) {
+      aggregatedData = convertToCumulative(aggregatedData);
+    }
     filteredData = aggregatedData.filter((d) => d.year >= minYear && d.year <= maxYear);
     if (filteredData.length === 0) {
       console.warn("No data in year range 2010-2025");
@@ -417,7 +398,7 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   let currentYear = years[0];
   let animationTimer: d3.Timer | null = null;
   let isUserInteracting = false;
-  const yearSpeed = 0.25; // continuous years per second
+  const yearSpeed = 1.0; // continuous years per second
   let lastTimestamp = Date.now();
 
   function startAutoPlay() {
@@ -444,6 +425,8 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
       animationTimer.stop();
       animationTimer = null;
     }
+    isPlaying = false;
+    toggleBtn.textContent = "▶ Play";
     const value = parseFloat((e.target as HTMLInputElement).value);
     currentYear = value;
     update(currentYear);
@@ -459,17 +442,28 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     }, 2000);
   });
 
-  propertySelect.addEventListener("change", () => {
-    selectedProperty = propertyOptions[propertySelect.selectedIndex];
-    refreshChartData();
-    xAxisGroup.call(xAxis).selectAll("text").attr("fill", "#fff");
-    xAxisGroup.selectAll("path, line").attr("stroke", "#fff");
-    update(currentYear);
-  });
-
-  viewSelect.addEventListener("change", () => {
-    selectedView = viewOptions[viewSelect.selectedIndex];
-    refreshChartData();
+  aggregationSelect.addEventListener("change", () => {
+    selectedAggregationMode = aggregationModes[aggregationSelect.selectedIndex];
+    aggregatedData = aggregateLabelData(data, (game: Game) => game.genres, selectedProperty.extractor);
+    if (selectedAggregationMode.isCumulative) {
+      aggregatedData = convertToCumulative(aggregatedData);
+    }
+    filteredData = aggregatedData.filter((d) => d.year >= minYear && d.year <= maxYear);
+    if (filteredData.length === 0) {
+      console.warn("No data in year range 2010-2025");
+      return;
+    }
+    genreYearMap = buildLabelYearMap(filteredData);
+    maxMetricOverall = d3.max(filteredData, (d) => d.metricValue) || 1;
+    years = Array.from(new Set(filteredData.map((d) => d.year))).sort((a, b) => a - b);
+    genres = Array.from(new Set(filteredData.map((d) => d.genre)));
+    colorScale.domain(genres);
+    xScale.domain([0, maxMetricOverall]);
+    slider.min = String(years[0]);
+    slider.max = String(years[years.length - 1]);
+    if (currentYear < years[0] || currentYear > years[years.length - 1]) {
+      currentYear = years[0];
+    }
     xAxisGroup.call(xAxis).selectAll("text").attr("fill", "#fff");
     xAxisGroup.selectAll("path, line").attr("stroke", "#fff");
     update(currentYear);
