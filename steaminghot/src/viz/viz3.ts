@@ -4,7 +4,7 @@ import * as d3 from "d3";
 interface GenreYearData {
   year: number;
   genre: string;
-  playerCount: number;
+  metricValue: number;
 }
 
 // Helper function to extract year from release date
@@ -34,35 +34,49 @@ function extractPlayerCount(estOwnersStr: string): number {
   return parseInt(numbers[0]);
 }
 
-// Aggregate data by genre and year
-function aggregateGenreData(games: Game[]): GenreYearData[] {
-  const genreYearMap = new Map<string, Map<number, number>>();
+// Aggregate data by label and year
+function aggregateLabelData(
+  games: Game[],
+  labelAccessor: (game: Game) => string[],
+  valueAccessor: (game: Game) => number
+): GenreYearData[] {
+  const labelYearMap = new Map<string, Map<number, number>>();
 
   games.forEach((game) => {
     const year = getYear(game.release_date);
     if (year === 0) return;
 
-    game.genres.forEach((genre) => {
-      if (!genreYearMap.has(genre)) {
-        genreYearMap.set(genre, new Map());
+    labelAccessor(game).forEach((label) => {
+      if (!labelYearMap.has(label)) {
+        labelYearMap.set(label, new Map());
       }
 
-      const yearMap = genreYearMap.get(genre)!;
-      const currentCount = yearMap.get(year) || 0;
-
-      const estimatedOwners = extractPlayerCount(game.estimated_owners); // Use estimated_owners as proxy for player count
-      yearMap.set(year, currentCount + estimatedOwners);
+      const yearMap = labelYearMap.get(label)!;
+      const currentValue = yearMap.get(year) || 0;
+      const metricValue = valueAccessor(game);
+      yearMap.set(year, currentValue + metricValue);
     });
   });
 
   const result: GenreYearData[] = [];
-  genreYearMap.forEach((yearMap, genre) => {
-    yearMap.forEach((playerCount, year) => {
-      result.push({ year, genre, playerCount });
+  labelYearMap.forEach((yearMap, label) => {
+    yearMap.forEach((metricValue, year) => {
+      result.push({ year, genre: label, metricValue });
     });
   });
 
   return result;
+}
+
+function buildLabelYearMap(data: GenreYearData[]): Map<string, Map<number, number>> {
+  const map = new Map<string, Map<number, number>>();
+  data.forEach((entry) => {
+    if (!map.has(entry.genre)) {
+      map.set(entry.genre, new Map());
+    }
+    map.get(entry.genre)!.set(entry.year, entry.metricValue);
+  });
+  return map;
 }
 
 export function initViz3(container: HTMLElement, data: Game[]): void {
@@ -74,50 +88,152 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     return;
   }
 
-  const aggregatedData = aggregateGenreData(data);
-  console.log("Aggregated data:", aggregatedData.length, "entries");
-
-  if (aggregatedData.length === 0) {
-    console.error("No aggregated data!");
-    container.innerHTML = "<p>No aggregated data</p>";
-    return;
-  }
-
   const minYear = 2010;
-  const maxYear = 2024;
-  const filteredData = aggregatedData.filter(
+  const maxYear = 2025;
+
+  const viewOptions = [
+    {
+      label: "Genres",
+      accessor: (game: Game) => game.genres,
+    },
+    {
+      label: "Games",
+      accessor: (game: Game) => [game.name],
+    },
+  ];
+
+  const propertyOptions = [
+    {
+      label: "Estimated Owners",
+      extractor: (game: Game) => extractPlayerCount(game.estimated_owners),
+    },
+    {
+      label: "Peak CCU",
+      extractor: (game: Game) => game.peak_ccu || 0,
+    },
+    {
+      label: "Average Playtime Forever",
+      extractor: (game: Game) => game.average_playtime_forever || 0,
+    },
+    {
+      label: "Average Playtime 2 Weeks",
+      extractor: (game: Game) => game.average_playtime_2weeks || 0,
+    },
+    {
+      label: "Median Playtime Forever",
+      extractor: (game: Game) => game.median_playtime_forever || 0,
+    },
+    {
+      label: "User Score",
+      extractor: (game: Game) => game.user_score || 0,
+    },
+  ];
+
+  let selectedView = viewOptions[0];
+  let selectedProperty = propertyOptions[0];
+  let aggregatedData = aggregateLabelData(data, selectedView.accessor, selectedProperty.extractor);
+  let filteredData = aggregatedData.filter(
     (d) => d.year >= minYear && d.year <= maxYear
   );
 
-  console.log("Filtered data:", filteredData.length, "entries");
-
   if (filteredData.length === 0) {
-    console.warn("No data in year range 2010-2024");
-    container.innerHTML = "<p>No data in year range 2010-2024</p>";
+    console.warn("No data in year range 2010-2025");
+    container.innerHTML = "<p>No data in year range 2010-2025</p>";
     return;
   }
 
-  const years = Array.from(new Set(filteredData.map((d) => d.year))).sort(
+  let genreYearMap = buildLabelYearMap(filteredData);
+  let maxMetricOverall = d3.max(filteredData, (d) => d.metricValue) || 1;
+  let years = Array.from(new Set(filteredData.map((d) => d.year))).sort(
     (a, b) => a - b
   );
-
   console.log("Years:", years);
 
-  const genres = Array.from(new Set(filteredData.map((d) => d.genre))); // Create color scale for genres
+  let genres = Array.from(new Set(filteredData.map((d) => d.genre))); // Create color scale for genres
   console.log("Genres:", genres);
 
-  const colorScale = d3.scaleOrdinal<string>()
+  function interpolateYearData(yearValue: number): GenreYearData[] {
+    const lower = Math.floor(yearValue);
+    const upper = Math.ceil(yearValue);
+    const t = yearValue - lower;
+
+    return genres.map((genre) => {
+      const yearMap = genreYearMap.get(genre)!;
+      const lowerValue = yearMap.get(lower) || 0;
+      const upperValue = yearMap.get(upper) || 0;
+      const metricValue = lower === upper ? lowerValue : lowerValue + (upperValue - lowerValue) * t;
+      return { year: yearValue, genre, metricValue };
+    });
+  }
+
+  let colorScale = d3.scaleOrdinal<string>()
     .domain(genres)
     .range(d3.schemeCategory10);
 
+  const maxGenresToShow = 10;
   const width = Math.max(container.clientWidth || 1000, 800);
   const height = 600;
   const margin = { top: 80, right: 50, bottom: 50, left: 200 };
 
-  // Transition duration for smoother anims (increase for slower)
-  const transitionDuration = 2000;
-
   container.innerHTML = "";
+
+  const propertyContainer = document.createElement("div");
+  propertyContainer.style.marginBottom = "12px";
+  propertyContainer.style.display = "flex";
+  propertyContainer.style.alignItems = "center";
+  propertyContainer.style.gap = "12px";
+  propertyContainer.style.padding = "10px 15px";
+  propertyContainer.style.background = "#f5f5f5";
+  propertyContainer.style.borderRadius = "8px";
+  propertyContainer.style.maxWidth = "520px";
+
+  const propertyLabel = document.createElement("label");
+  propertyLabel.textContent = "Metric:";
+  propertyLabel.style.fontWeight = "bold";
+  propertyLabel.style.minWidth = "70px";
+
+  const propertySelect = document.createElement("select");
+  propertySelect.style.flex = "1";
+  propertySelect.style.padding = "8px 10px";
+  propertySelect.style.border = "1px solid #ccc";
+  propertySelect.style.borderRadius = "6px";
+  propertySelect.style.background = "#fff";
+  propertySelect.style.color = "#000";
+  propertySelect.style.cursor = "pointer";
+
+  const viewLabel = document.createElement("label");
+  viewLabel.textContent = "View:";
+  viewLabel.style.fontWeight = "bold";
+  viewLabel.style.minWidth = "55px";
+
+  const viewSelect = document.createElement("select");
+  viewSelect.style.flex = "1";
+  viewSelect.style.padding = "8px 10px";
+  viewSelect.style.border = "1px solid #ccc";
+  viewSelect.style.borderRadius = "6px";
+  viewSelect.style.background = "#fff";
+  viewSelect.style.color = "#000";
+  viewSelect.style.cursor = "pointer";
+
+  propertyOptions.forEach((option, index) => {
+    const opt = document.createElement("option");
+    opt.value = String(index);
+    opt.text = option.label;
+    propertySelect.appendChild(opt);
+  });
+
+  viewOptions.forEach((option, index) => {
+    const opt = document.createElement("option");
+    opt.value = String(index);
+    opt.text = option.label;
+    viewSelect.appendChild(opt);
+  });
+
+  propertyContainer.appendChild(propertyLabel);
+  propertyContainer.appendChild(propertySelect);
+  propertyContainer.appendChild(viewLabel);
+  propertyContainer.appendChild(viewSelect);
+  container.appendChild(propertyContainer);
 
   // slider
   const sliderContainer = document.createElement("div");
@@ -139,7 +255,7 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   slider.type = "range";
   slider.min = String(years[0]);
   slider.max = String(years[years.length - 1]);
-  slider.step = "1";
+  slider.step = "0.01";
   slider.value = String(years[0]);
   slider.style.width = "100%";
   slider.style.cursor = "pointer";
@@ -152,22 +268,6 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   yearDisplay.style.minWidth = "60px";
   yearDisplay.style.fontWeight = "bold";
 
-  const yearToIndex = new Map<number, number>(years.map((year, idx) => [year, idx]));
-  function findClosestYearIndex(yearValue: number): number {
-    if (yearToIndex.has(yearValue)) {
-      return yearToIndex.get(yearValue)!;
-    }
-    let closestIndex = 0;
-    let closestDiff = Infinity;
-    years.forEach((year, idx) => {
-      const diff = Math.abs(year - yearValue);
-      if (diff < closestDiff) {
-        closestDiff = diff;
-        closestIndex = idx;
-      }
-    });
-    return closestIndex;
-  }
   yearDisplay.style.fontSize = "16px";
   yearDisplay.style.color = "#8429ca";
 
@@ -181,8 +281,8 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     .append("svg")
     .attr("width", width)
     .attr("height", height)
-    .style("background", "#f9f9f9")
-    .style("border", "1px solid #ccc")
+    .style("background", "#000")
+    .style("border", "2px solid #fff")
     .style("display", "block");
 
   console.log("SVG created");
@@ -193,16 +293,41 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
 
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
-  const xScale = d3.scaleLinear().range([0, plotWidth]);
+  const xScale = d3.scaleLinear().range([0, plotWidth]).domain([0, maxMetricOverall]);
   const yScale = d3
     .scaleBand<string>()
     .range([0, plotHeight])
-    .padding(0.1);
+    .padding(0.24);
 
   const xAxis = d3.axisTop(xScale);
-  const yAxis = d3.axisLeft(yScale);
+  const yAxis = d3.axisLeft(yScale).tickSize(0).tickFormat(() => "");
   const xAxisGroup = g.append("g").attr("class", "x-axis");
   const yAxisGroup = g.append("g").attr("class", "y-axis");
+
+  xAxisGroup.call(xAxis).selectAll("text").attr("fill", "#fff");
+  xAxisGroup.selectAll("path, line").attr("stroke", "#fff");
+  yAxisGroup.call(yAxis);
+  yAxisGroup.selectAll("path, line").attr("stroke", "#fff");
+
+  function refreshChartData(): void {
+    aggregatedData = aggregateLabelData(data, selectedView.accessor, selectedProperty.extractor);
+    filteredData = aggregatedData.filter((d) => d.year >= minYear && d.year <= maxYear);
+    if (filteredData.length === 0) {
+      console.warn("No data in year range 2010-2025");
+      return;
+    }
+    genreYearMap = buildLabelYearMap(filteredData);
+    maxMetricOverall = d3.max(filteredData, (d) => d.metricValue) || 1;
+    years = Array.from(new Set(filteredData.map((d) => d.year))).sort((a, b) => a - b);
+    genres = Array.from(new Set(filteredData.map((d) => d.genre)));
+    colorScale.domain(genres);
+    xScale.domain([0, maxMetricOverall]);
+    slider.min = String(years[0]);
+    slider.max = String(years[years.length - 1]);
+    if (currentYear < years[0] || currentYear > years[years.length - 1]) {
+      currentYear = years[0];
+    }
+  }
 
   const yearText = svg
     .append("text")
@@ -211,99 +336,143 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     .attr("font-size", "32px")
     .attr("font-weight", "bold")
     .attr("text-anchor", "middle")
-    .attr("fill", "#333");
+    .attr("fill", "#fff");
 
   const barsGroup = g.append("g").attr("class", "bars");
+  const labelsGroup = g.append("g").attr("class", "bar-labels");
 
   // animation function
-  function update(yearIndex: number, immediate = false) {
-    const currentYear = years[yearIndex];
-    const yearData = filteredData.filter((d) => d.year === currentYear);
+  function update(yearValue: number) {
+    const clampedYear = Math.max(minYear, Math.min(maxYear, yearValue));
+    const currentData = interpolateYearData(clampedYear);
+    const sortedData = currentData.sort((a, b) => b.metricValue - a.metricValue);
+    const displayedData = sortedData.slice(0, maxGenresToShow);
+    const displayYear = Math.round(clampedYear);
 
-    if (yearData.length === 0) {
-      console.warn("No data for year", currentYear);
-      return;
-    }
+    slider.value = String(clampedYear.toFixed(2));
+    yearDisplay.textContent = String(displayYear);
+    yearText.text(String(displayYear));
 
-    slider.value = String(currentYear);
-    yearDisplay.textContent = String(currentYear);
-    yearText.text(String(currentYear));
-    const sortedData = yearData.sort(
-      (a, b) => b.playerCount - a.playerCount
-    );
-
-    const maxPlayers = d3.max(sortedData, (d) => d.playerCount) || 1;
-    xScale.domain([0, maxPlayers]);
-    yScale.domain(sortedData.map((d) => d.genre));
-    const duration = immediate ? 0 : transitionDuration;
-    xAxisGroup.transition().duration(duration).call(xAxis);
-    yAxisGroup.transition().duration(duration).call(yAxis);
+    yScale.domain(displayedData.map((d) => d.genre));
+    yAxisGroup
+      .transition()
+      .duration(500)
+      .call(yAxis);
+    yAxisGroup.selectAll("path, line").attr("stroke", "#fff");
 
     const bars = barsGroup
       .selectAll<SVGRectElement, GenreYearData>("rect")
-      .data(sortedData, (d) => d.genre);
+      .data(displayedData, (d) => d.genre);
 
     bars.exit().remove();
 
-    bars
+    const enteringBars = bars
       .enter()
       .append("rect")
       .attr("class", "bar")
       .attr("fill", (d) => colorScale(d.genre))
       .attr("height", yScale.bandwidth())
-      .attr("width", 0)
-      .merge(bars)
+      .attr("x", 0)
+      .attr("y", (d) => yScale(d.genre) || 0)
+      .attr("width", 0);
+
+    enteringBars
+      .merge(bars as d3.Selection<SVGRectElement, GenreYearData, SVGGElement, unknown>)
       .transition()
-      .duration(duration)
-      .ease(d3.easeQuadInOut)
+      .duration(500)
+      .ease(d3.easeLinear)
+      .attr("height", yScale.bandwidth())
       .attr("y", (d) => yScale(d.genre) || 0)
       .attr("x", 0)
-      .attr("width", (d) => xScale(d.playerCount))
-      .attr("height", yScale.bandwidth());
+      .attr("width", (d) => xScale(d.metricValue));
+
+    const labels = labelsGroup
+      .selectAll<SVGTextElement, GenreYearData>("text")
+      .data(displayedData, (d) => d.genre);
+
+    labels.exit().remove();
+
+    const enteringLabels = labels
+      .enter()
+      .append("text")
+      .attr("fill", "#fff")
+      .attr("font-size", "12px")
+      .attr("alignment-baseline", "middle")
+      .attr("text-anchor", "end")
+      .attr("x", -10)
+      .attr("y", (d) => (yScale(d.genre) || 0) + yScale.bandwidth() / 2)
+      .text((d) => d.genre);
+
+    enteringLabels
+      .merge(labels as d3.Selection<SVGTextElement, GenreYearData, SVGGElement, unknown>)
+      .transition()
+      .duration(500)
+      .ease(d3.easeLinear)
+      .attr("x", -10)
+      .attr("y", (d) => (yScale(d.genre) || 0) + yScale.bandwidth() / 2)
+      .text((d) => d.genre);
   }
 
   console.log("Initializing with first year:", years[0]);
-  update(0, true);
-
-  // Auto-play animation variables
-  let currentYearIndex = 0;
-  let animationInterval: number | null = null;
+  let currentYear = years[0];
+  let animationTimer: d3.Timer | null = null;
   let isUserInteracting = false;
+  const yearSpeed = 0.25; // continuous years per second
+  let lastTimestamp = Date.now();
 
   function startAutoPlay() {
-    if (animationInterval) clearInterval(animationInterval);
-    currentYearIndex = 0;
-    animationInterval = setInterval(() => {
-      if (currentYearIndex < years.length - 1) {
-        currentYearIndex++;
-        update(currentYearIndex);
-      } else {
-        // Loop back to beginning 
-        currentYearIndex = 0;
-        update(currentYearIndex);
+    if (animationTimer) {
+      animationTimer.stop();
+    }
+    isUserInteracting = false;
+    lastTimestamp = Date.now();
+    animationTimer = d3.timer(() => {
+      const now = Date.now();
+      const dt = now - lastTimestamp;
+      lastTimestamp = now;
+      currentYear += (dt / 1000) * yearSpeed;
+      if (currentYear > maxYear) {
+        currentYear = minYear + (currentYear - maxYear);
       }
-    }, transitionDuration + 300) as unknown as number;
+      update(currentYear);
+    });
   }
 
   slider.addEventListener("input", (e) => {
     isUserInteracting = true;
-    if (animationInterval) {
-      clearInterval(animationInterval);
-      animationInterval = null;
+    if (animationTimer) {
+      animationTimer.stop();
+      animationTimer = null;
     }
-    const value = parseInt((e.target as HTMLInputElement).value);
-    const index = findClosestYearIndex(value);
-    currentYearIndex = index;
-    update(index);
+    const value = parseFloat((e.target as HTMLInputElement).value);
+    currentYear = value;
+    update(currentYear);
   });
 
   let userInteractionTimeout: number | null = null;
   slider.addEventListener("change", () => {
     if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
-    userInteractionTimeout = setTimeout(() => {
-      isUserInteracting = false;
-      startAutoPlay();
-    }, 2000) as unknown as number;
+    userInteractionTimeout = window.setTimeout(() => {
+      if (!isUserInteracting) {
+        startAutoPlay();
+      }
+    }, 2000);
+  });
+
+  propertySelect.addEventListener("change", () => {
+    selectedProperty = propertyOptions[propertySelect.selectedIndex];
+    refreshChartData();
+    xAxisGroup.call(xAxis).selectAll("text").attr("fill", "#fff");
+    xAxisGroup.selectAll("path, line").attr("stroke", "#fff");
+    update(currentYear);
+  });
+
+  viewSelect.addEventListener("change", () => {
+    selectedView = viewOptions[viewSelect.selectedIndex];
+    refreshChartData();
+    xAxisGroup.call(xAxis).selectAll("text").attr("fill", "#fff");
+    xAxisGroup.selectAll("path, line").attr("stroke", "#fff");
+    update(currentYear);
   });
 
   // Add playback controls
@@ -313,49 +482,47 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   controlsDiv.style.gap = "10px";
   controlsDiv.style.alignItems = "center";
 
-  const playBtn = document.createElement("button");
-  playBtn.textContent = "▶ Play";
-  playBtn.style.padding = "10px 20px";
-  playBtn.style.background = "#8429ca";
-  playBtn.style.color = "white";
-  playBtn.style.border = "none";
-  playBtn.style.borderRadius = "6px";
-  playBtn.style.cursor = "pointer";
-  playBtn.style.fontWeight = "bold";
-  playBtn.style.fontSize = "14px";
-  playBtn.style.transition = "background 0.2s";
-  playBtn.onmouseover = () => (playBtn.style.background = "#a940e0");
-  playBtn.onmouseout = () => (playBtn.style.background = "#8429ca");
-  playBtn.onclick = () => {
-    console.log("Play clicked");
-    if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
-    startAutoPlay();
+  let isPlaying = false;
+
+  const toggleBtn = document.createElement("button");
+  toggleBtn.textContent = "▶ Play";
+  toggleBtn.style.padding = "10px 20px";
+  toggleBtn.style.background = "#8429ca";
+  toggleBtn.style.color = "white";
+  toggleBtn.style.border = "none";
+  toggleBtn.style.borderRadius = "6px";
+  toggleBtn.style.cursor = "pointer";
+  toggleBtn.style.fontWeight = "bold";
+  toggleBtn.style.fontSize = "14px";
+  toggleBtn.style.transition = "background 0.2s";
+  toggleBtn.onmouseover = () => (toggleBtn.style.background = "#a940e0");
+  toggleBtn.onmouseout = () => (toggleBtn.style.background = "#8429ca");
+  toggleBtn.onclick = () => {
+    if (isPlaying) {
+      // Pause
+      console.log("Pause clicked");
+      if (animationTimer) {
+        animationTimer.stop();
+        animationTimer = null;
+      }
+      isPlaying = false;
+      toggleBtn.textContent = "▶ Play";
+    } else {
+      // Play
+      console.log("Play clicked");
+      if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
+      startAutoPlay();
+      isPlaying = true;
+      toggleBtn.textContent = "⏸ Pause";
+    }
   };
 
-  const pauseBtn = document.createElement("button");
-  pauseBtn.textContent = "⏸ Pause";
-  pauseBtn.style.padding = "10px 20px";
-  pauseBtn.style.background = "#8429ca";
-  pauseBtn.style.color = "white";
-  pauseBtn.style.border = "none";
-  pauseBtn.style.borderRadius = "6px";
-  pauseBtn.style.cursor = "pointer";
-  pauseBtn.style.fontWeight = "bold";
-  pauseBtn.style.fontSize = "14px";
-  pauseBtn.style.transition = "background 0.2s";
-  pauseBtn.onmouseover = () => (pauseBtn.style.background = "#a940e0");
-  pauseBtn.onmouseout = () => (pauseBtn.style.background = "#8429ca");
-  pauseBtn.onclick = () => {
-    console.log("Pause clicked");
-    if (animationInterval) clearInterval(animationInterval);
-    animationInterval = null;
-  };
-
-  controlsDiv.appendChild(playBtn);
-  controlsDiv.appendChild(pauseBtn);
+  controlsDiv.appendChild(toggleBtn);
   container.appendChild(controlsDiv);
 
   startAutoPlay(); // on load
+  isPlaying = true;
+  toggleBtn.textContent = "⏸ Pause";
 
   console.log("=== initViz3 complete ===");
 }
