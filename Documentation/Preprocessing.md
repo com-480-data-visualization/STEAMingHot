@@ -7,6 +7,18 @@
 
 The preprocessing scripts turn the raw JSON dataset into a more memory efficient file, that will be used for the rest of the project. The pipeline is intentionally simple and is driven from a single entry point: `run.py`.
 
+## Prerequisites
+The only requirement to run the pipeline is to have Python 3 installed, along with the `msgpack-python` library. You can install the library using pip:
+
+```bash
+pip install msgpack-python
+```
+or with conda:
+
+```bash
+conda install msgpack-python
+```
+
 ## Pipeline Steps
 
 1. `load.py` reads the raw JSON file and converts each game into a `Game` object.

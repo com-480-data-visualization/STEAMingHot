@@ -11,6 +11,52 @@ RESET = '\033[0m'
 type Dataset = dict[str, Game]
 type RawDataset = dict[str, Any]
 
+@dataclass
+class Game:
+    game_id: str                    # Unique identifier for the application.
+    name: str                       # Title of the game.
+    release_date: str               # Official release date.
+    required_age: int               # Minimum age requirement (0 if none).
+    price: float                    # Cost in USD (0.0 if free).
+    dlc_count: int                  # Total number of downloadable content items.
+    detailed_description: str       # Full description.
+    about_the_game: str             # Similar to full description.
+    short_description: str          # Brief plain-text description.
+    reviews: str                    # Review data (field accessed but not unpacked in script).
+    header_image: str               # URL to the store header image.
+    website: str                    # Official game website URL.
+    support_url: str                # Support website URL.
+    support_email: str              # Contact email for support.
+    windows: bool                   # Windows OS compatibility.
+    mac: bool                       # macOS compatibility.
+    linux: bool                     # Linux compatibility.
+    metacritic_score: int           # Score from Metacritic (0 if none).
+    metacritic_url: str             # URL to Metacritic review page.
+    achievements: int               # Total number of achievements.
+    recommendations: int            # Total user recommendations.
+    notes: str                      # Extra content information/warnings.
+    supported_languages: list       # Comma-separated list of languages.
+    full_audio_languages: list      # Comma-separated list of languages with audio.
+    packages: list[dict]            # list of objects: title (string), description (string), subs (list of objects with text, description, price).
+    developers: list                # list of strings: Names of development entities.
+    publishers: list                # list of strings: Names of publishing entities.
+    categories: list                # list of strings: Feature categories (e.g., "Multi-player").
+    genres: list                    # list of strings: Game genres (e.g., "Action").
+    screenshots: list               # list of strings: URLs to game screenshots (Note: script uses spelling "scrennshots" in some places).
+    movies: list                    # list of strings: URLs to game trailers/videos.
+    user_score: int                 # Internal user score (0 if none).
+    score_rank: str                 # Rank based on user reviews.
+    positive: int                   # Count of positive votes.
+    negative: int                   # Count of negative votes.
+    estimated_owners: str           # Range of owners (e.g., "0 - 20000").
+    average_playtime_forever: int   # Average playtime in minutes (since 2009).
+    average_playtime_2weeks: int    # Average playtime in minutes (last 14 days).
+    median_playtime_forever: int    # Median playtime in minutes (since 2009).
+    median_playtime_2weeks: int     # Median playtime in minutes (last 14 days).
+    discount: int                   # Discount percentage.
+    peak_ccu: int                   # Yesterday's peak concurrent users.
+    tags: list                      # list/dict: User-defined tags (keys represent tag names). 
+
 def log_step(at:int, total:int, text: str, done=False) -> None:
     """Format a log message for a pipeline step."""
     prefix = f'Step {at}/{total}:'
@@ -62,50 +108,3 @@ def human_readable_estimated_owners(estimated_owners_str: str) -> str:
         else:
             return str(num)
     return f'{human_readable(min_owners)}-{human_readable(max_owners)}' 
-
-
-@dataclass
-class Game:
-    game_id: str                    # Unique identifier for the application.
-    name: str                       # Title of the game.
-    release_date: str               # Official release date.
-    required_age: int               # Minimum age requirement (0 if none).
-    price: float                    # Cost in USD (0.0 if free).
-    dlc_count: int                  # Total number of downloadable content items.
-    detailed_description: str       # Full description.
-    about_the_game: str             # Similar to full description.
-    short_description: str          # Brief plain-text description.
-    reviews: str                    # Review data (field accessed but not unpacked in script).
-    header_image: str               # URL to the store header image.
-    website: str                    # Official game website URL.
-    support_url: str                # Support website URL.
-    support_email: str              # Contact email for support.
-    windows: bool                   # Windows OS compatibility.
-    mac: bool                       # macOS compatibility.
-    linux: bool                     # Linux compatibility.
-    metacritic_score: int           # Score from Metacritic (0 if none).
-    metacritic_url: str             # URL to Metacritic review page.
-    achievements: int               # Total number of achievements.
-    recommendations: int            # Total user recommendations.
-    notes: str                      # Extra content information/warnings.
-    supported_languages: list       # Comma-separated list of languages.
-    full_audio_languages: list      # Comma-separated list of languages with audio.
-    packages: list[dict]            # list of objects: title (string), description (string), subs (list of objects with text, description, price).
-    developers: list                # list of strings: Names of development entities.
-    publishers: list                # list of strings: Names of publishing entities.
-    categories: list                # list of strings: Feature categories (e.g., "Multi-player").
-    genres: list                    # list of strings: Game genres (e.g., "Action").
-    screenshots: list               # list of strings: URLs to game screenshots (Note: script uses spelling "scrennshots" in some places).
-    movies: list                    # list of strings: URLs to game trailers/videos.
-    user_score: int                 # Internal user score (0 if none).
-    score_rank: str                 # Rank based on user reviews.
-    positive: int                   # Count of positive votes.
-    negative: int                   # Count of negative votes.
-    estimated_owners: str           # Range of owners (e.g., "0 - 20000").
-    average_playtime_forever: int   # Average playtime in minutes (since 2009).
-    average_playtime_2weeks: int    # Average playtime in minutes (last 14 days).
-    median_playtime_forever: int    # Median playtime in minutes (since 2009).
-    median_playtime_2weeks: int     # Median playtime in minutes (last 14 days).
-    discount: int                   # Discount percentage.
-    peak_ccu: int                   # Yesterday's peak concurrent users.
-    tags: list                      # list/dict: User-defined tags (keys represent tag names). 

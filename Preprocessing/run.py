@@ -45,7 +45,7 @@ if __name__ == "__main__":
             # 'metacritic_url', # could be actually useful, only takes 2.5mb on full dataset
         ],
         game_validation_predicates=[
-            lambda game: (game.positive + game.negative) >= 50,
+            # lambda game: (game.positive + game.negative) >= 50,
         ],
     )
     main(config)
