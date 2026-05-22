@@ -70,7 +70,7 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     return;
   }
 
-  const minYear = 2005; // 1997 first games
+  const minYear = 2010; // 1997 first games
   const maxYear = 2025;
 
   const aggregationModes = [
@@ -146,8 +146,9 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
 
   const maxGenresToShow = 10;
   const width = Math.max(container.clientWidth || 1000, 800);
-  const height = 600;
   const margin = { top: 80, right: 50, bottom: 50, left: 200 };
+  const barHeight = 40; // Height per bar
+  const minHeight = 600; // Minimum height for the SVG
 
   container.innerHTML = "";
 
@@ -240,7 +241,7 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     .select(container)
     .append("svg")
     .attr("width", width)
-    .attr("height", height)
+    .attr("height", minHeight)
     .style("background", "#000")
     .style("border", "2px solid #fff")
     .style("display", "block");
@@ -251,8 +252,8 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const plotWidth = width - margin.left - margin.right;
-  const plotHeight = height - margin.top - margin.bottom;
+  let plotWidth = width - margin.left - margin.right;
+  let plotHeight = minHeight - margin.top - margin.bottom;
   const xScale = d3.scaleLinear().range([0, plotWidth]).domain([0, maxMetricOverall]);
   const yScale = d3
     .scaleBand<string>()
@@ -278,6 +279,16 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     .attr("text-anchor", "middle")
     .attr("fill", "#fff");
 
+  // Add x-axis label at the end
+  const xAxisLabel = g
+    .append("text")
+    .attr("x", 132)
+    .attr("y", -25)
+    .style("text-anchor", "end")
+    .attr("fill", "#fff")
+    .attr("font-size", "14px")
+    .text("Number of Releases");
+
   const barsGroup = g.append("g").attr("class", "bars");
   const labelsGroup = g.append("g").attr("class", "bar-labels");
 
@@ -292,6 +303,8 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     slider.value = String(clampedYear.toFixed(2));
     yearDisplay.textContent = String(displayYear);
     yearText.text(String(displayYear));
+
+    xAxisLabel.attr("y", -25);
 
     yScale.domain(displayedData.map((d) => d.genre));
     yAxisGroup
