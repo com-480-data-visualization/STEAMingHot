@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --background: #1e1e1e;
   --surface: rgb(47, 47, 47);
   --primaryAccent: #8429ca;
@@ -325,9 +325,26 @@ p {
 }
 
 .game-metadata-sections {
-  display: grid;
-  grid-template-columns: max-content minmax(0, max-content);
-  gap: 1.5rem 5rem;
+  display: flex;
+  gap: 5rem;
+  align-items: flex-start;
+}
+
+.metadata-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.metadata-col-left {
+  width: 30%;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.metadata-col-right {
+  flex: 1;
+  min-width: 0;
 }
 
 .game-tags {
@@ -486,6 +503,34 @@ p {
   background-color: #3b3b3b;
 }
 
+
+.filter-games-list {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid #4b4b4b;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.filter-list-header {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted, #aaa);
+  border-bottom: 1px solid #4b4b4b;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+
+.metadata-list-item.active {
+  background: #3b3b3b;
+  border-color: var(--primaryAccent);
+  color: var(--primaryAccent);
+}
 .search-no-results {
   padding: 1rem;
   text-align: center;

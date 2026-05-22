@@ -6,7 +6,13 @@ type FilterCallback = (
   filterValue: string | string[],
 ) => void;
 
-function createGameCard(game: Game, onFilter: FilterCallback): HTMLElement {
+type ActiveFilter = { type: string; value: string };
+
+function createGameCard(
+  game: Game,
+  onFilter: FilterCallback,
+  activeFilters: ActiveFilter[],
+): HTMLElement {
   const card = document.createElement("div");
   card.className = "single-game-card";
 
@@ -26,8 +32,17 @@ function createGameCard(game: Game, onFilter: FilterCallback): HTMLElement {
   // top row right: header with name and description
   const header = document.createElement("div");
   header.className = "game-card-header";
+
+  // title with link to store page
   const title = document.createElement("h3");
-  title.textContent = game.name;
+  const titleLink = document.createElement("a");
+  titleLink.textContent = game.name;
+  titleLink.href = `https://store.steampowered.com/app/${game.game_id}`;
+  titleLink.target = "_blank";
+  titleLink.rel = "noopener noreferrer";
+  titleLink.style.color = "inherit";
+  title.appendChild(titleLink);
+
   const description = document.createElement("p");
   description.className = "game-description";
   description.textContent = game.short_description;
@@ -58,6 +73,7 @@ function createGameCard(game: Game, onFilter: FilterCallback): HTMLElement {
       game.developers,
       "developer",
       onFilter,
+      activeFilters,
     );
   }
   if (game.publishers.length > 0) {
@@ -67,15 +83,30 @@ function createGameCard(game: Game, onFilter: FilterCallback): HTMLElement {
       game.publishers,
       "publisher",
       onFilter,
+      activeFilters,
     );
   }
-  metadataSectionsContainer.appendChild(releaseSection);
+  // Pricing & Content section
+  const pricingSection = createMetadataSection(
+    "Pricing & Content",
+    [
+      { label: "Price", value: "$" + game.price.toFixed(2) },
+      { label: "DLC Count", value: game.dlc_count.toString() },
+      { label: "Achievements", value: game.achievements.toString() },
+    ],
+    onFilter,
+  );
+
+  const leftCol = document.createElement("div");
+  leftCol.className = "metadata-col metadata-col-left";
+  leftCol.appendChild(releaseSection);
+  leftCol.appendChild(pricingSection);
+  metadataSectionsContainer.appendChild(leftCol);
 
   // Community & Reviews section
   const communitySection = createMetadataSection(
     "Community",
     [
-      { label: "User Score", value: game.user_score.toFixed(1) },
       { label: "Positive Reviews", value: game.positive.toLocaleString() },
       { label: "Negative Reviews", value: game.negative.toLocaleString() },
       {
@@ -96,26 +127,13 @@ function createGameCard(game: Game, onFilter: FilterCallback): HTMLElement {
     ],
     onFilter,
   );
-  metadataSectionsContainer.appendChild(communitySection);
-
-  // Pricing & Content section
-  const pricingSection = createMetadataSection(
-    "Pricing & Content",
-    [
-      { label: "Price", value: "$" + game.price.toFixed(2) },
-      { label: "DLC Count", value: game.dlc_count.toString() },
-      { label: "Achievements", value: game.achievements.toString() },
-    ],
-    onFilter,
-  );
-  metadataSectionsContainer.appendChild(pricingSection);
 
   // Genres & Categories section
   const genresSection = document.createElement("div");
   genresSection.className = "metadata-section";
   const genresTitle = document.createElement("div");
   genresTitle.className = "metadata-section-title";
-  genresTitle.textContent = "Genres & Categories";
+  genresTitle.textContent = "Genres & Tags";
   genresSection.appendChild(genresTitle);
   if (game.genres.length > 0) {
     addListFieldToSection(
@@ -124,41 +142,30 @@ function createGameCard(game: Game, onFilter: FilterCallback): HTMLElement {
       game.genres,
       "genre",
       onFilter,
+      activeFilters,
     );
   }
-  if (game.categories.length > 0) {
+  const topTags = Object.keys(game.tags)
+    .sort((a, b) => game.tags[b] - game.tags[a])
+    .slice(0, 15);
+  if (topTags.length > 0) {
     addListFieldToSection(
       genresSection,
-      "Categories",
-      game.categories,
-      "category",
+      "Player Tags",
+      topTags,
+      "tag",
       onFilter,
+      activeFilters,
     );
   }
-  metadataSectionsContainer.appendChild(genresSection);
+
+  const rightCol = document.createElement("div");
+  rightCol.className = "metadata-col metadata-col-right";
+  rightCol.appendChild(communitySection);
+  rightCol.appendChild(genresSection);
+  metadataSectionsContainer.appendChild(rightCol);
 
   card.appendChild(metadataSectionsContainer);
-
-  // Tags section
-  const tagsSection = document.createElement("div");
-  tagsSection.className = "metadata-section";
-  const tagsTitle = document.createElement("div");
-  tagsTitle.className = "metadata-section-title";
-  tagsTitle.textContent = "Player Tags";
-  tagsSection.appendChild(tagsTitle);
-  const tags = document.createElement("div");
-  tags.className = "game-tags";
-  Object.keys(game.tags)
-    .sort((a, b) => game.tags[b] - game.tags[a])
-    .slice(0, 15)
-    .forEach((tagName) => {
-      const span = document.createElement("span");
-      span.textContent = tagName;
-      span.addEventListener("click", () => onFilter("tag", tagName));
-      tags.appendChild(span);
-    });
-  tagsSection.appendChild(tags);
-  card.appendChild(tagsSection);
 
   return card;
 }
@@ -198,6 +205,7 @@ function addListFieldToSection(
   items: string[],
   filterType: string,
   onFilter: FilterCallback,
+  activeFilters: ActiveFilter[],
 ): void {
   const fieldEl = document.createElement("div");
   fieldEl.className = "metadata-field";
@@ -211,7 +219,10 @@ function addListFieldToSection(
   listContainer.className = "metadata-list";
   items.forEach((item) => {
     const itemEl = document.createElement("div");
-    itemEl.className = "metadata-list-item";
+    const isActive = activeFilters.some(
+      (f) => f.type === filterType && f.value === item,
+    );
+    itemEl.className = "metadata-list-item" + (isActive ? " active" : "");
     itemEl.textContent = item;
     itemEl.addEventListener("click", () => onFilter(filterType, item));
     listContainer.appendChild(itemEl);
@@ -223,9 +234,10 @@ function displayGameCard(
   container: HTMLElement,
   game: Game,
   onFilter: FilterCallback,
+  activeFilters: ActiveFilter[],
 ): void {
   container.innerHTML = "";
-  container.appendChild(createGameCard(game, onFilter));
+  container.appendChild(createGameCard(game, onFilter, activeFilters));
 }
 
 function searchGamesByName(
@@ -283,23 +295,47 @@ function clearSuggestions(container: HTMLElement): void {
   container.innerHTML = "";
 }
 
-function filterGamesByType(
+function filterGamesByActiveFilters(
   games: Game[],
-  filterType: string,
-  filterValue: string | string[],
+  filters: ActiveFilter[],
 ): Game[] {
-  if (filterType === "developer") {
-    return games.filter((g) => g.developers.includes(filterValue as string));
-  } else if (filterType === "publisher") {
-    return games.filter((g) => g.publishers.includes(filterValue as string));
-  } else if (filterType === "genre") {
-    return games.filter((g) => g.genres.includes(filterValue as string));
-  } else if (filterType === "category") {
-    return games.filter((g) => g.categories.includes(filterValue as string));
-  } else if (filterType === "tag") {
-    return games.filter((g) => g.tags[filterValue as string]);
-  }
-  return games;
+  return games.filter((game) =>
+    filters.every(({ type, value }) => {
+      if (type === "developer") return game.developers.includes(value);
+      if (type === "publisher") return game.publishers.includes(value);
+      if (type === "genre") return game.genres.includes(value);
+      if (type === "tag") return !!game.tags[value];
+      return true;
+    }),
+  );
+}
+
+function renderFilteredGamesList(
+  listContainer: HTMLElement,
+  games: Game[],
+  activeFilters: ActiveFilter[],
+  onSelect: (game: Game) => void,
+): void {
+  listContainer.innerHTML = "";
+  if (activeFilters.length === 0) return;
+
+  const top50 = [...games]
+    .sort((a, b) => b.peak_ccu - a.peak_ccu)
+    .slice(0, 50);
+
+  const header = document.createElement("div");
+  header.className = "filter-list-header";
+  header.textContent =
+    top50.length > 0
+      ? "Other popular games matching your filters"
+      : "No games match all selected filters";
+  listContainer.appendChild(header);
+
+  if (top50.length === 0) return;
+
+  const itemsContainer = document.createElement("div");
+  listContainer.appendChild(itemsContainer);
+  renderSuggestions(itemsContainer, top50, onSelect);
 }
 
 export function initViz1(container: HTMLElement, data: Game[]): void {
@@ -333,23 +369,46 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
     return;
   }
 
-  let currentData = data;
+  const filterListContainer = document.createElement("div");
+  filterListContainer.className = "filter-games-list";
+  container.parentElement?.insertBefore(
+    filterListContainer,
+    container.nextSibling,
+  );
 
-  const handleFilter: FilterCallback = (
-    filterType: string,
-    filterValue: string | string[],
-  ) => {
-    const filtered = filterGamesByType(data, filterType, filterValue);
-    if (filtered.length > 0) {
-      currentData = filtered;
-      searchInput.value = "";
-      clearSuggestions(suggestionsContainer);
-      noResultsContainer.style.display = "none";
-      displayGameCard(container, filtered[0], handleFilter);
-    }
+  let activeFilters: ActiveFilter[] = [];
+  let currentGame = initialGame;
+
+  const refreshCard = () => {
+    displayGameCard(container, currentGame, handleFilter, activeFilters);
   };
 
-  displayGameCard(container, initialGame, handleFilter);
+  const refreshList = () => {
+    const filtered = filterGamesByActiveFilters(data, activeFilters);
+    renderFilteredGamesList(filterListContainer, filtered, activeFilters, (game) => {
+      activeFilters = [];
+      filterListContainer.innerHTML = "";
+      currentGame = game;
+      refreshCard();
+      container.scrollIntoView({ behavior: "smooth" });
+    });
+  };
+
+  const handleFilter: FilterCallback = (filterType, filterValue) => {
+    const value = filterValue as string;
+    const idx = activeFilters.findIndex(
+      (f) => f.type === filterType && f.value === value,
+    );
+    if (idx >= 0) {
+      activeFilters.splice(idx, 1);
+    } else {
+      activeFilters.push({ type: filterType, value });
+    }
+    refreshCard();
+    refreshList();
+  };
+
+  displayGameCard(container, initialGame, handleFilter, activeFilters);
 
   searchInput.addEventListener("input", () => {
     const query = searchInput.value;
@@ -367,8 +426,10 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
       renderSuggestions(suggestionsContainer, suggestions, (game) => {
         searchInput.value = game.name;
         clearSuggestions(suggestionsContainer);
-        currentData = data;
-        displayGameCard(container, game, handleFilter);
+        activeFilters = [];
+        filterListContainer.innerHTML = "";
+        currentGame = game;
+        refreshCard();
       });
     }
   });
@@ -379,8 +440,10 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
 
     const matchedGame = performSearch(query, data);
     if (matchedGame) {
-      currentData = data;
-      displayGameCard(container, matchedGame, handleFilter);
+      activeFilters = [];
+      filterListContainer.innerHTML = "";
+      currentGame = matchedGame;
+      refreshCard();
       searchInput.value = matchedGame.name;
       noResultsContainer.style.display = "none";
     } else {
@@ -401,9 +464,11 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
     searchClear.addEventListener("click", () => {
       searchInput.value = "";
       clearSuggestions(suggestionsContainer);
+      activeFilters = [];
+      filterListContainer.innerHTML = "";
       noResultsContainer.style.display = "none";
-      currentData = data;
-      displayGameCard(container, initialGame, handleFilter);
+      currentGame = initialGame;
+      refreshCard();
     });
   }
 
