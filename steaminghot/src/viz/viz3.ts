@@ -16,24 +16,6 @@ function getYear(dateStr: string): number {
   }
 }
 
-// Extract and parse estimated_owners value from range string
-// e.g., "100000-200000" -> 150000 (midpoint), "1000000-2000000" -> 1500000
-function extractPlayerCount(estOwnersStr: string): number {
-  if (!estOwnersStr || estOwnersStr.trim() === "") return 0;
-
-  const numbers = estOwnersStr.match(/\d+/g);
-  
-  if (!numbers || numbers.length === 0) return 0;
-
-  if (numbers.length >= 2) {
-    const lower = parseInt(numbers[0]);
-    const upper = parseInt(numbers[1]);
-    return Math.floor((lower + upper) / 2);
-  }
-
-  return parseInt(numbers[0]);
-}
-
 // Aggregate data by label and year
 function aggregateLabelData(
   games: Game[],
@@ -88,7 +70,7 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     return;
   }
 
-  const minYear = 2010;
+  const minYear = 2005; // 1997 first games
   const maxYear = 2025;
 
   const aggregationModes = [
@@ -287,29 +269,6 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   yAxisGroup.call(yAxis);
   yAxisGroup.selectAll("path, line").attr("stroke", "#fff");
 
-  function refreshChartData(): void {
-    aggregatedData = aggregateLabelData(data, (game: Game) => game.genres, selectedProperty.extractor);
-    if (selectedAggregationMode.isCumulative) {
-      aggregatedData = convertToCumulative(aggregatedData);
-    }
-    filteredData = aggregatedData.filter((d) => d.year >= minYear && d.year <= maxYear);
-    if (filteredData.length === 0) {
-      console.warn("No data in year range 2010-2025");
-      return;
-    }
-    genreYearMap = buildLabelYearMap(filteredData);
-    maxMetricOverall = d3.max(filteredData, (d) => d.metricValue) || 1;
-    years = Array.from(new Set(filteredData.map((d) => d.year))).sort((a, b) => a - b);
-    genres = Array.from(new Set(filteredData.map((d) => d.genre)));
-    colorScale.domain(genres);
-    xScale.domain([0, maxMetricOverall]);
-    slider.min = String(years[0]);
-    slider.max = String(years[years.length - 1]);
-    if (currentYear < years[0] || currentYear > years[years.length - 1]) {
-      currentYear = years[0];
-    }
-  }
-
   const yearText = svg
     .append("text")
     .attr("x", width / 2)
@@ -493,7 +452,6 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   toggleBtn.onmouseout = () => (toggleBtn.style.background = "#8429ca");
   toggleBtn.onclick = () => {
     if (isPlaying) {
-      // Pause
       console.log("Pause clicked");
       if (animationTimer) {
         animationTimer.stop();
@@ -502,7 +460,6 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
       isPlaying = false;
       toggleBtn.textContent = "▶ Play";
     } else {
-      // Play
       console.log("Play clicked");
       if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
       startAutoPlay();
