@@ -22,7 +22,6 @@ export interface Game {
   categories: string[];
   genres: string[];
   movies: string[];
-  user_score: number;
   positive: number;
   negative: number;
   estimated_owners: string;

@@ -40,6 +40,7 @@ if __name__ == "__main__":
             'support_email',
             'reviews', # too inconsistent and takes 6 mb on full dataset
             'score_rank', # only 40 games have it
+            'user_score', # only 40 games have it
             'screenshots', # take an extreme amount of space, header image is enough
             'packages', #todo: discuss that one (13mb on full dataset)
             # 'metacritic_url', # could be actually useful, only takes 2.5mb on full dataset
