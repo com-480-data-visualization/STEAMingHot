@@ -1,3 +1,28 @@
+export interface Viz2Row {
+  name: string;
+  color: string;
+  yValues: number[];
+  path: Path2D;
+  price: number;
+  positiveRatio: number;
+  totalReviews: number;
+  medianPlaytime: number;
+  peakCcu: number;
+  achievements: number;
+  dlcCount: number;
+}
+
+export type Viz2RowKey = Exclude<
+  keyof Viz2Row,
+  "name" | "color" | "yValues" | "path"
+>;
+
+export interface Viz2Dimension {
+  key: Viz2RowKey;
+  label: string;
+  log: boolean;
+}
+
 export interface Game {
   game_id: string;
   name: string;

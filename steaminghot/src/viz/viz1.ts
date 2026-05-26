@@ -105,14 +105,14 @@ function createGameCard(
         ((game.positive / (game.positive + game.negative)) * 100).toFixed(1) +
         "%",
     },
-    { label: "Peak Players", value: game.peak_ccu.toLocaleString() },
+    { label: "Peak Concurrent Users", value: game.peak_ccu.toLocaleString() },
     {
-      label: "Median Playtime (since launch)",
-      value: game.median_playtime_forever + " hours",
+      label: "Median Playtime\n(since launch)",
+      value: Math.round(game.median_playtime_forever / 60) + " hours",
     },
     {
-      label: "Median Playtime (past 2 weeks)",
-      value: game.median_playtime_2weeks + " hours",
+      label: "Median Playtime\n(past 2 weeks)",
+      value: Math.round(game.median_playtime_2weeks / 60) + " hours",
     },
     {
       label: "Recommendations",
@@ -398,7 +398,9 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
   };
 
   const refreshList = () => {
-    const filtered = filterGamesByActiveFilters(data, activeFilters);
+    const filtered = filterGamesByActiveFilters(data, activeFilters).filter(
+      (g) => g.game_id !== currentGame.game_id,
+    );
     renderFilteredGamesList(
       filterListContainer,
       filtered,
