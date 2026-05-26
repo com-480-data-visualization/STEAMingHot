@@ -1,4 +1,4 @@
-import { Game } from "../types";
+﻿import { Game } from "../types";
 import _ from "lodash";
 
 type FilterCallback = (
@@ -16,7 +16,7 @@ function createGameCard(
   const card = document.createElement("div");
   card.className = "single-game-card";
 
-  // Top row with image, name and description
+  // top row with image, name and description
   const topRow = document.createElement("div");
   topRow.className = "game-card-top-row";
 
@@ -53,19 +53,15 @@ function createGameCard(
   topRow.appendChild(header);
   card.appendChild(topRow);
 
-  // Metadata sections grid
+  // metadata sections grid
   const metadataSectionsContainer = document.createElement("div");
   metadataSectionsContainer.className = "game-metadata-sections";
 
-  // Release Details section
-  const releaseSection = createMetadataSection(
-    "Release Details",
-    [
-      { label: "Release Date", value: game.release_date },
-      { label: "Age Rating", value: game.required_age.toString() },
-    ],
-    onFilter,
-  );
+  // release details section
+  const releaseSection = createMetadataSection("Release Details", [
+    { label: "Release Date", value: game.release_date },
+    { label: "Age Rating", value: game.required_age.toString() },
+  ]);
   if (game.developers.length > 0) {
     addListFieldToSection(
       releaseSection,
@@ -86,16 +82,12 @@ function createGameCard(
       activeFilters,
     );
   }
-  // Pricing & Content section
-  const pricingSection = createMetadataSection(
-    "Pricing & Content",
-    [
-      { label: "Price", value: "$" + game.price.toFixed(2) },
-      { label: "DLC Count", value: game.dlc_count.toString() },
-      { label: "Achievements", value: game.achievements.toString() },
-    ],
-    onFilter,
-  );
+  // pricing & content section
+  const pricingSection = createMetadataSection("Pricing & Content", [
+    { label: "Price", value: "$" + game.price.toFixed(2) },
+    { label: "DLC Count", value: game.dlc_count.toString() },
+    { label: "Achievements", value: game.achievements.toString() },
+  ]);
 
   const leftCol = document.createElement("div");
   leftCol.className = "metadata-col metadata-col-left";
@@ -103,32 +95,32 @@ function createGameCard(
   leftCol.appendChild(pricingSection);
   metadataSectionsContainer.appendChild(leftCol);
 
-  // Community & Reviews section
-  const communitySection = createMetadataSection(
-    "Community",
-    [
-      { label: "Positive Reviews", value: game.positive.toLocaleString() },
-      { label: "Negative Reviews", value: game.negative.toLocaleString() },
-      {
-        label: "Positive Ratio",
-        value:
-          ((game.positive / (game.positive + game.negative)) * 100).toFixed(1) +
-          "%",
-      },
-      { label: "Peak Players", value: game.peak_ccu.toLocaleString() },
-      {
-        label: "Median Playtime",
-        value: game.median_playtime_forever + " hours",
-      },
-      {
-        label: "Recommendations",
-        value: game.recommendations.toLocaleString(),
-      },
-    ],
-    onFilter,
-  );
+  // community & reviews section
+  const communitySection = createMetadataSection("Community", [
+    { label: "Positive Reviews", value: game.positive.toLocaleString() },
+    { label: "Negative Reviews", value: game.negative.toLocaleString() },
+    {
+      label: "Positive Ratio",
+      value:
+        ((game.positive / (game.positive + game.negative)) * 100).toFixed(1) +
+        "%",
+    },
+    { label: "Peak Players", value: game.peak_ccu.toLocaleString() },
+    {
+      label: "Median Playtime (since launch)",
+      value: game.median_playtime_forever + " hours",
+    },
+    {
+      label: "Median Playtime (past 2 weeks)",
+      value: game.median_playtime_2weeks + " hours",
+    },
+    {
+      label: "Recommendations",
+      value: game.recommendations.toLocaleString(),
+    },
+  ]);
 
-  // Genres & Categories section
+  // genres & categories section
   const genresSection = document.createElement("div");
   genresSection.className = "metadata-section";
   const genresTitle = document.createElement("div");
@@ -170,10 +162,10 @@ function createGameCard(
   return card;
 }
 
+// for a metadata section with a header and the info in field columns (title + value)
 function createMetadataSection(
   title: string,
   fields: { label: string; value: string }[],
-  onFilter: FilterCallback,
 ): HTMLElement {
   const section = document.createElement("div");
   section.className = "metadata-section";
@@ -183,22 +175,24 @@ function createMetadataSection(
   section.appendChild(sectionTitle);
 
   fields.forEach((field) => {
-    const fieldEl = document.createElement("div");
-    fieldEl.className = "metadata-field";
+    const fieldElement = document.createElement("div");
+    fieldElement.className = "metadata-field";
     const label = document.createElement("span");
     label.className = "metadata-field label";
     label.textContent = field.label;
     const value = document.createElement("span");
     value.className = "metadata-value";
     value.textContent = field.value;
-    fieldEl.appendChild(label);
-    fieldEl.appendChild(value);
-    section.appendChild(fieldEl);
+    fieldElement.appendChild(label);
+    fieldElement.appendChild(value);
+    section.appendChild(fieldElement);
   });
 
   return section;
 }
 
+// for metadata fields that are a list (e.g. developers, tags, ...).
+// -> the list items are rendered as a flex row of buttons
 function addListFieldToSection(
   section: HTMLElement,
   fieldLabel: string,
@@ -207,13 +201,13 @@ function addListFieldToSection(
   onFilter: FilterCallback,
   activeFilters: ActiveFilter[],
 ): void {
-  const fieldEl = document.createElement("div");
-  fieldEl.className = "metadata-field";
+  const fieldElement = document.createElement("div");
+  fieldElement.className = "metadata-field";
   const label = document.createElement("span");
   label.className = "metadata-field label";
   label.textContent = fieldLabel;
-  fieldEl.appendChild(label);
-  section.appendChild(fieldEl);
+  fieldElement.appendChild(label);
+  section.appendChild(fieldElement);
 
   const listContainer = document.createElement("div");
   listContainer.className = "metadata-list";
@@ -240,6 +234,7 @@ function displayGameCard(
   container.appendChild(createGameCard(game, onFilter, activeFilters));
 }
 
+// search function for the top search bar (searches game names)
 function searchGamesByName(
   query: string,
   allGames: Game[],
@@ -273,6 +268,7 @@ function performSearch(query: string, allGames: Game[]): Game | null {
   return containsMatch || null;
 }
 
+// show suggestions when searching a game: dropdown list of matches
 function renderSuggestions(
   container: HTMLElement,
   games: Game[],
@@ -295,6 +291,7 @@ function clearSuggestions(container: HTMLElement): void {
   container.innerHTML = "";
 }
 
+// get all active filters (pressed buttons) and searches games that match all of them (not any)
 function filterGamesByActiveFilters(
   games: Game[],
   filters: ActiveFilter[],
@@ -310,6 +307,7 @@ function filterGamesByActiveFilters(
   );
 }
 
+// same dropdown list visually as the game name search results. Only take the 50 most popular games
 function renderFilteredGamesList(
   listContainer: HTMLElement,
   games: Game[],
@@ -320,9 +318,7 @@ function renderFilteredGamesList(
   listContainer.innerHTML = "";
   if (activeFilters.length === 0) return;
 
-  const top50 = [...games]
-    .sort((a, b) => b.peak_ccu - a.peak_ccu)
-    .slice(0, 50);
+  const top50 = [...games].sort((a, b) => b.peak_ccu - a.peak_ccu).slice(0, 50);
 
   const header = document.createElement("div");
   header.className = "filter-list-header";
