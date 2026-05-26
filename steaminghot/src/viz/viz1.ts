@@ -315,6 +315,7 @@ function renderFilteredGamesList(
   games: Game[],
   activeFilters: ActiveFilter[],
   onSelect: (game: Game) => void,
+  onClearFilters: () => void,
 ): void {
   listContainer.innerHTML = "";
   if (activeFilters.length === 0) return;
@@ -325,10 +326,21 @@ function renderFilteredGamesList(
 
   const header = document.createElement("div");
   header.className = "filter-list-header";
-  header.textContent =
+
+  const headerText = document.createElement("span");
+  headerText.textContent =
     top50.length > 0
       ? "Other popular games matching your filters"
       : "No games match all selected filters";
+  header.appendChild(headerText);
+
+  const clearBtn = document.createElement("button");
+  clearBtn.className = "filter-list-clear-btn";
+  clearBtn.title = "Clear all filters";
+  clearBtn.textContent = "✕";
+  clearBtn.addEventListener("click", onClearFilters);
+  header.appendChild(clearBtn);
+
   listContainer.appendChild(header);
 
   if (top50.length === 0) return;
@@ -383,15 +395,27 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
     displayGameCard(container, currentGame, handleFilter, activeFilters);
   };
 
+  const clearFilters = () => {
+    activeFilters = [];
+    filterListContainer.innerHTML = "";
+    refreshCard();
+  };
+
   const refreshList = () => {
     const filtered = filterGamesByActiveFilters(data, activeFilters);
-    renderFilteredGamesList(filterListContainer, filtered, activeFilters, (game) => {
-      activeFilters = [];
-      filterListContainer.innerHTML = "";
-      currentGame = game;
-      refreshCard();
-      container.scrollIntoView({ behavior: "smooth" });
-    });
+    renderFilteredGamesList(
+      filterListContainer,
+      filtered,
+      activeFilters,
+      (game) => {
+        activeFilters = [];
+        filterListContainer.innerHTML = "";
+        currentGame = game;
+        refreshCard();
+        container.scrollIntoView({ behavior: "smooth" });
+      },
+      clearFilters,
+    );
   };
 
   const handleFilter: FilterCallback = (filterType, filterValue) => {
