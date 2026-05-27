@@ -6,7 +6,7 @@
 | Lorie Xu | 327573 |
 | Valentin Porchet | 347219 |
 
-[Milestone 1](milestones/Milestone1.pdf) • [Milestone 2](milestones/Milestone2.pdf) • [Milestone 3](milestones/St)
+[Milestone 1](milestones/Milestone1.pdf) • [Milestone 2](milestones/Milestone2.pdf) • **Milestone 3 to be added !!!!!!**
 ## Project description
 ### Introduction
 The goal of this project is to help game developers and publishers to better understand what makes a game successful on the Steam platform. To do so, we have scrapped a large dataset of games and their attributes from the Steam store, and we have built a web application that allows to explore this dataset through different visualizations. The web application is built with TypeScript and D3.js, and it is deployed on GitHub Pages.
