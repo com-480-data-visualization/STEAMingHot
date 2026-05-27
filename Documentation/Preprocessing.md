@@ -1,7 +1,7 @@
 # Preprocessing Pipeline
 
 > [!NOTE] TL;DR
-> This pipeline converts the raw JSON dataset obtained from the scrapper into a smaller MessagePack file that will be used as the main database in the web app. The pipeline can be configured by editing the `Config` block in `run.py`.
+> This pipeline converts the raw JSON dataset obtained from the scrapper into a smaller MessagePack file that will be used as the main database in the web app. The `run.py` file can be executed from the root directory of the project with the command `python Preprocessing/run.py`. The same file also contains the main configuration settings for the pipeline, such as which fields to drop or which predicates to use for filtering the games.
 
 ## Overview
 
