@@ -1,4 +1,4 @@
-# Project of Data Visualization (COM-480)
+# EPFL COM-480 - Spring26: **STEAMing Hot**
 
 | Student's name | SCIPER |
 | -------------- | ------ |
