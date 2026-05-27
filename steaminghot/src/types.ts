@@ -3,6 +3,7 @@ export interface Viz2Row {
   color: string;
   yValues: number[];
   path: Path2D;
+  tags: string[];
   price: number;
   positiveRatio: number;
   totalReviews: number;
@@ -14,7 +15,7 @@ export interface Viz2Row {
 
 export type Viz2RowKey = Exclude<
   keyof Viz2Row,
-  "name" | "color" | "yValues" | "path"
+  "name" | "color" | "yValues" | "path" | "tags"
 >;
 
 export interface Viz2Dimension {

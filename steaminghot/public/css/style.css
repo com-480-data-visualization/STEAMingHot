@@ -559,6 +559,29 @@ p {
   background: #4b4b4b;
 }
 
+.viz2-genre-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.viz2-tag-select {
+  background: var(--surface);
+  border: 1px solid #4b4b4b;
+  border-radius: 8px;
+  color: var(--text);
+  font-family: "body-font", sans-serif;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.viz2-tag-select:focus {
+  outline: none;
+  border-color: var(--primaryAccent);
+}
+
 .viz2-tooltip {
   position: absolute;
   background: rgba(30, 30, 30, 0.92);

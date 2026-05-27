@@ -6,6 +6,7 @@ from common import *
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_FOLDER = os.path.join(PROJECT_ROOT, 'data')
+SCRAPER_FOLDER = os.path.join(PROJECT_ROOT, 'Steam-Games-Scraper') # for testing purposes
 ORIGINAL_DATASET_PATH = os.path.join(DATA_FOLDER, 'games.json')
 OUTPUT_DATASET_PATH = os.path.join(PROJECT_ROOT, 'steaminghot/public/data/games.msgpack')
 
@@ -42,7 +43,7 @@ if __name__ == "__main__":
             'score_rank', # only 40 games have it
             'user_score', # only 40 games have it
             'screenshots', # take an extreme amount of space, header image is enough
-            'packages', #todo: discuss that one (13mb on full dataset)
+            'packages', #unused and very verbose
             # 'metacritic_url', # could be actually useful, only takes 2.5mb on full dataset
         ],
         game_validation_predicates=[
