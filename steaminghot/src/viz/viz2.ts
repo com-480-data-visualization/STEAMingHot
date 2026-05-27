@@ -27,6 +27,7 @@ function toRow(g: Game): Viz2Row {
     color: "",
     yValues: [],
     path: new Path2D(),
+    tags: Object.keys(g.tags),
     price: g.price,
     positiveRatio: (g.positive / total) * 100,
     totalReviews: total,
@@ -63,6 +64,26 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
       (g) => g.positive + g.negative >= MIN_REVIEWS && g.price <= MAX_PRICE,
     )
     .map(toRow);
+
+  // genre dropdown
+  const allTags = [...new Set(data.flatMap((g) => Object.keys(g.tags)))].sort();
+  const genreWrapper = document.createElement("div");
+  genreWrapper.className = "viz2-genre-wrapper";
+  genreWrapper.style.paddingRight = `${MARGIN.right}px`;
+  const tagSelect = document.createElement("select");
+  tagSelect.className = "viz2-tag-select";
+  const defaultOpt = document.createElement("option");
+  defaultOpt.value = "";
+  defaultOpt.textContent = "All tags";
+  tagSelect.appendChild(defaultOpt);
+  allTags.forEach((genre) => {
+    const opt = document.createElement("option");
+    opt.value = genre;
+    opt.textContent = genre;
+    tagSelect.appendChild(opt);
+  });
+  genreWrapper.appendChild(tagSelect);
+  container.parentElement?.insertBefore(genreWrapper, container);
 
   // set up graph dimensions
   const totalW = container.clientWidth || 960;
@@ -132,12 +153,17 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
     return true;
   }
 
+  let selectedTag: string | null = null;
+
   // filter out games based on user selection
   function visibleGameRows(limit: number | null): Viz2Row[] {
+    const source = selectedTag
+      ? rows.filter((r) => r.tags.includes(selectedTag!))
+      : rows;
     const anyInterval = [...selectedIntervals.values()].some(Boolean);
-    if (!anyInterval) return rows;
+    if (!anyInterval) return source;
     const result: Viz2Row[] = [];
-    for (const row of rows) {
+    for (const row of source) {
       if (!isSelected(row)) continue;
       result.push(row);
       if (limit !== null && result.length >= limit) break;
@@ -370,7 +396,10 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
 
     if (found === hoveredRow) {
       if (tooltip.style.display === "block") {
-        tooltip.style.left = `${lastMouse.x + 14}px`;
+        const overflows = lastMouse.x + 14 + tooltip.offsetWidth > container.clientWidth;
+        tooltip.style.left = overflows
+          ? `${lastMouse.x - 14 - tooltip.offsetWidth}px`
+          : `${lastMouse.x + 14}px`;
         tooltip.style.top = `${lastMouse.y - 12}px`;
       }
       return;
@@ -385,9 +414,12 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
       tooltipTimer = setTimeout(() => {
         if (!hoveredRow) return;
         tooltip.textContent = hoveredRow.name;
-        tooltip.style.left = `${lastMouse.x + 14}px`;
-        tooltip.style.top = `${lastMouse.y - 12}px`;
         tooltip.style.display = "block";
+        const overflows = lastMouse.x + 14 + tooltip.offsetWidth > container.clientWidth;
+        tooltip.style.left = overflows
+          ? `${lastMouse.x - 14 - tooltip.offsetWidth}px`
+          : `${lastMouse.x + 14}px`;
+        tooltip.style.top = `${lastMouse.y - 12}px`;
       }, 500);
     } else {
       draw();
@@ -398,6 +430,13 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
     if (tooltipTimer) { clearTimeout(tooltipTimer); tooltipTimer = null; }
     tooltip.style.display = "none";
     hoveredRow = null;
+    draw();
+  });
+
+  tagSelect.addEventListener("change", () => {
+    selectedTag = tagSelect.value || null;
+    hoveredRow = null;
+    tooltip.style.display = "none";
     draw();
   });
 
