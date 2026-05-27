@@ -189,6 +189,29 @@ p {
   justify-content: center;
 }
 
+.search-random {
+  padding: 0.6rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--primaryAccent);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: "body-font", sans-serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-random:hover {
+  background: var(--primaryAccent);
+  transform: translateY(-1px);
+}
+
 .search-clear {
   position: absolute;
   right: 0.4rem;

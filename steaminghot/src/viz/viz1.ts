@@ -101,9 +101,11 @@ function createGameCard(
     { label: "Negative Reviews", value: game.negative.toLocaleString() },
     {
       label: "Positive Ratio",
-      value:
-        ((game.positive / (game.positive + game.negative)) * 100).toFixed(1) +
-        "%",
+      value: (() => {
+        const totalReviews = game.positive + game.negative;
+        if (totalReviews === 0) return "0.0%";
+        return ((game.positive / totalReviews) * 100).toFixed(1) + "%";
+      })(),
     },
     { label: "Peak Concurrent Users", value: game.peak_ccu.toLocaleString() },
     {
@@ -359,6 +361,8 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
   const searchInput = document.querySelector<HTMLInputElement>(".search-input");
   const searchButton =
     document.querySelector<HTMLButtonElement>(".search-button");
+  const randomButton =
+    document.querySelector<HTMLButtonElement>(".search-random");
   const searchClear =
     document.querySelector<HTMLButtonElement>(".search-clear");
   const suggestionsContainer = document.querySelector<HTMLElement>(
@@ -475,7 +479,19 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
     }
   };
 
+  const loadRandomGame = () => {
+    const randomGame = data[Math.floor(Math.random() * data.length)];
+    activeFilters = [];
+    filterListContainer.innerHTML = "";
+    currentGame = randomGame;
+    searchInput.value = randomGame.name;
+    clearSuggestions(suggestionsContainer);
+    noResultsContainer.style.display = "none";
+    refreshCard();
+  };
+
   searchButton.addEventListener("click", performSearchAndDisplay);
+  randomButton?.addEventListener("click", loadRandomGame);
   searchInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       performSearchAndDisplay();
