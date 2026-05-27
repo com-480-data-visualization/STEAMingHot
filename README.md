@@ -1,4 +1,5 @@
-# EPFL COM-480 - Spring26: **STEAMing Hot**
+# EPFL COM-480: Data Visualization - Spring2026
+![STEAMingHotSTEAMing DEV GOSSIP](images/header.png)
 
 | Student's name | SCIPER |
 | -------------- | ------ |
