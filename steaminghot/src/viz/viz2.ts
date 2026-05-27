@@ -145,8 +145,10 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
     return result;
   }
 
-  // draw a rectangle over the y-axis where the user is selecting an interval
+  let batchClearing = false;
+
   function draw(limit: number | null = null) {
+    if (batchClearing) return;
     ctx.clearRect(0, 0, totalW, totalH);
     ctx.save();
     ctx.translate(MARGIN.left, MARGIN.top);
@@ -155,6 +157,26 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
     for (const row of visibleGameRows(limit)) {
       ctx.strokeStyle = row.color;
       ctx.stroke(row.path);
+    }
+    ctx.restore();
+  }
+
+  // time-sliced version: strokes for ~12ms then yields a frame so animations keep running
+  async function drawAsync() {
+    const visible = visibleGameRows(null);
+    ctx.clearRect(0, 0, totalW, totalH);
+    ctx.save();
+    ctx.translate(MARGIN.left, MARGIN.top);
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = 1.2;
+    let frameEnd = performance.now() + 12;
+    for (const row of visible) {
+      ctx.strokeStyle = row.color;
+      ctx.stroke(row.path);
+      if (performance.now() >= frameEnd) {
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        frameEnd = performance.now() + 12;
+      }
     }
     ctx.restore();
   }
@@ -249,7 +271,19 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
   clearBtn.className = "viz2-clear-btn";
   clearBtn.style.top = `8px`;
   clearBtn.style.right = `${MARGIN.right}px`;
-  clearBtn.addEventListener("click", () => brushClearFns.forEach((fn) => fn()));
+  clearBtn.addEventListener("click", async () => {
+    clearBtn.innerHTML = '<span class="viz2-spinner"></span>';
+    clearBtn.disabled = true;
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+    batchClearing = true;
+    brushClearFns.forEach((fn) => fn());
+    batchClearing = false;
+    await drawAsync();
+    clearBtn.textContent = "Clear selections";
+    clearBtn.disabled = false;
+  });
   container.appendChild(clearBtn);
 
   const defs = svg.append("defs");
@@ -286,6 +320,86 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
       .attr("fill", "currentColor")
       .text(label),
   );
+
+  // hover: dim all lines except the hovered one
+  function drawHover(hovered: Viz2Row) {
+    const visible = visibleGameRows(null);
+    ctx.clearRect(0, 0, totalW, totalH);
+    ctx.save();
+    ctx.translate(MARGIN.left, MARGIN.top);
+    ctx.lineWidth = 1.2;
+    ctx.globalAlpha = 0.08;
+    for (const row of visible) {
+      if (row === hovered) continue;
+      ctx.strokeStyle = row.color;
+      ctx.stroke(row.path);
+    }
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = hovered.color;
+    ctx.stroke(hovered.path);
+    ctx.restore();
+  }
+
+  const tooltip = document.createElement("div");
+  tooltip.className = "viz2-tooltip";
+  container.appendChild(tooltip);
+
+  let hoveredRow: Viz2Row | null = null;
+  let tooltipTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastMouse = { x: 0, y: 0 };
+
+  container.addEventListener("mousemove", (e) => {
+    if (batchClearing) return;
+    const rect = container.getBoundingClientRect();
+    lastMouse = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const mx = lastMouse.x - MARGIN.left;
+    const my = lastMouse.y - MARGIN.top;
+
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.lineWidth = 10;
+    let found: Viz2Row | null = null;
+    for (const row of visibleGameRows(null)) {
+      if (ctx.isPointInStroke(row.path, mx, my)) {
+        found = row;
+        break;
+      }
+    }
+    ctx.restore();
+
+    if (found === hoveredRow) {
+      if (tooltip.style.display === "block") {
+        tooltip.style.left = `${lastMouse.x + 14}px`;
+        tooltip.style.top = `${lastMouse.y - 12}px`;
+      }
+      return;
+    }
+
+    hoveredRow = found;
+    if (tooltipTimer) { clearTimeout(tooltipTimer); tooltipTimer = null; }
+    tooltip.style.display = "none";
+
+    if (found) {
+      drawHover(found);
+      tooltipTimer = setTimeout(() => {
+        if (!hoveredRow) return;
+        tooltip.textContent = hoveredRow.name;
+        tooltip.style.left = `${lastMouse.x + 14}px`;
+        tooltip.style.top = `${lastMouse.y - 12}px`;
+        tooltip.style.display = "block";
+      }, 500);
+    } else {
+      draw();
+    }
+  });
+
+  container.addEventListener("mouseleave", () => {
+    if (tooltipTimer) { clearTimeout(tooltipTimer); tooltipTimer = null; }
+    tooltip.style.display = "none";
+    hoveredRow = null;
+    draw();
+  });
 
   draw();
 }
