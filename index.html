@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STEAMing Hot</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script type="module" crossorigin src="/STEAMingHot/assets/index-g_eaY-1L.js"></script>
+  </head>
+
+  <body>
+    <!-- Navigation to specific graphs -->
+    <nav>
+      <a
+        href="https://github.com/com-480-data-visualization/STEAMingHot"
+        class="github-icon"
+        title="GitHub Repository"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
+          <path
+            d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"
+          />
+        </svg>
+      </a>
+      <a href="#singleGame">Game Insights</a>
+      <span class="nav-divider"></span>
+      <a href="#gameComparator">Game Comparator</a>
+      <span class="nav-divider"></span>
+      <a href="#overview">Overview</a>
+      <span class="nav-divider"></span>
+      <a href="#developingTrends">Developing Trends</a>
+      <span class="nav-divider"></span>
+      <a href="#about">About</a>
+    </nav>
+
+    <section id="title">
+      <h1>STEAMing DEV GOSSIP</h1>
+      <p class="subtitle">Discover what you need to make your game blow up</p>
+    </section>
+
+    <section id="singleGame">
+      <h2>Game Insights</h2>
+      <p>Search a game and learn more about what makes it popular!</p>
+
+      <div class="game-search">
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            placeholder="Enter game name..."
+            class="search-input"
+          />
+          <button class="search-clear" aria-label="Clear search">✕</button>
+        </div>
+        <button class="search-button">Search</button>
+        <button class="search-random">Random</button>
+      </div>
+
+      <div class="search-suggestions"></div>
+      <div class="search-no-results" style="display: none"></div>
+
+      <div class="viz1">
+        <!-- D3 viz1 will be rendered here -->
+      </div>
+    </section>
+
+    <section id="gameComparator">
+      <h2>Game Comparator</h2>
+      <p>
+        Compare different games and see how they stack up against each other!
+      </p>
+      <div class="viz4">
+        <!-- D3 viz4 will be rendered here -->
+      </div>
+    </section>
+
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>
+        Get general statistics about all steam games!<br />
+        Discover more by dragging your mouse over the vertical axes... You can
+        also click on an axis to remove your selection.
+      </p>
+      <div class="viz2">
+        <!-- D3 viz2 will be rendered here -->
+      </div>
+    </section>
+
+    <section id="developingTrends">
+      <h2>Developping Trends</h2>
+      <p>
+        See what kind of games are being released and when, and how that has
+        evolved over the years.
+      </p>
+
+      <div class="viz3">
+        <!-- D3 viz3 will be rendered here -->
+      </div>
+    </section>
+
+    <section id="about">
+      <h2>About</h2>
+      <p>
+        STEAMing Tea is a project that aims to help new video game developers
+        learn more about release tendencies. We hope that you can use the
+        insights we provide to help decide how and when to market your game to
+        make it as successful as you deserve!
+      </p>
+      <p class="signature">
+        - Alice Reymond, Lorie Xu, Valentin Porchet | COM-480 Data Visualization
+      </p>
+    </section>
+
+  </body>
+</html>
