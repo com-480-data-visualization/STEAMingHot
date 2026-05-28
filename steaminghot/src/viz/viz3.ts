@@ -237,6 +237,53 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   sliderContainer.appendChild(yearDisplay);
   container.appendChild(sliderContainer);
 
+  // Playback controls placed next to the slider
+  let isPlaying = false;
+
+  const controlsDiv = document.createElement("div");
+  controlsDiv.style.display = "flex";
+  controlsDiv.style.gap = "10px";
+  controlsDiv.style.alignItems = "center";
+
+  const toggleBtn = document.createElement("button");
+  toggleBtn.textContent = "▶ Play";
+  // compact fixed-size button so label changes don't resize it
+  toggleBtn.style.padding = "6px 10px";
+  toggleBtn.style.width = "92px";
+  toggleBtn.style.boxSizing = "border-box";
+  toggleBtn.style.display = "inline-flex";
+  toggleBtn.style.alignItems = "center";
+  toggleBtn.style.justifyContent = "center";
+  toggleBtn.style.background = "#8429ca";
+  toggleBtn.style.color = "white";
+  toggleBtn.style.border = "none";
+  toggleBtn.style.borderRadius = "6px";
+  toggleBtn.style.cursor = "pointer";
+  toggleBtn.style.fontWeight = "600";
+  toggleBtn.style.fontSize = "13px";
+  toggleBtn.style.transition = "background 0.2s";
+  toggleBtn.onmouseover = () => (toggleBtn.style.background = "#a940e0");
+  toggleBtn.onmouseout = () => (toggleBtn.style.background = "#8429ca");
+  toggleBtn.onclick = () => {
+    if (isPlaying) {
+      // pause
+      if (animationTimer) {
+        animationTimer.stop();
+        animationTimer = null;
+      }
+      isPlaying = false;
+      toggleBtn.textContent = "▶ Play";
+    } else {
+      // play
+      startAutoPlay();
+      isPlaying = true;
+      toggleBtn.textContent = "⏸ Pause";
+    }
+  };
+
+  controlsDiv.appendChild(toggleBtn);
+  sliderContainer.appendChild(controlsDiv);
+
   const svg = d3
     .select(container)
     .append("svg")
@@ -441,48 +488,7 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     update(currentYear);
   });
 
-  // Add playback controls
-  const controlsDiv = document.createElement("div");
-  controlsDiv.style.marginTop = "15px";
-  controlsDiv.style.display = "flex";
-  controlsDiv.style.gap = "10px";
-  controlsDiv.style.alignItems = "center";
-
-  let isPlaying = false;
-
-  const toggleBtn = document.createElement("button");
-  toggleBtn.textContent = "▶ Play";
-  toggleBtn.style.padding = "10px 20px";
-  toggleBtn.style.background = "#8429ca";
-  toggleBtn.style.color = "white";
-  toggleBtn.style.border = "none";
-  toggleBtn.style.borderRadius = "6px";
-  toggleBtn.style.cursor = "pointer";
-  toggleBtn.style.fontWeight = "bold";
-  toggleBtn.style.fontSize = "14px";
-  toggleBtn.style.transition = "background 0.2s";
-  toggleBtn.onmouseover = () => (toggleBtn.style.background = "#a940e0");
-  toggleBtn.onmouseout = () => (toggleBtn.style.background = "#8429ca");
-  toggleBtn.onclick = () => {
-    if (isPlaying) {
-      console.log("Pause clicked");
-      if (animationTimer) {
-        animationTimer.stop();
-        animationTimer = null;
-      }
-      isPlaying = false;
-      toggleBtn.textContent = "▶ Play";
-    } else {
-      console.log("Play clicked");
-      if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
-      startAutoPlay();
-      isPlaying = true;
-      toggleBtn.textContent = "⏸ Pause";
-    }
-  };
-
-  controlsDiv.appendChild(toggleBtn);
-  container.appendChild(controlsDiv);
+  
 
   startAutoPlay(); // on load
   isPlaying = true;
