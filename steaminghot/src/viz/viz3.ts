@@ -488,12 +488,29 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     update(currentYear);
   });
 
-  
-
-  startAutoPlay(); // on load
+  // Render the initial frame so the chart is never blank before play starts.
+  update(currentYear);
   isPlaying = true;
   toggleBtn.textContent = "⏸ Pause";
 
-  console.log("=== initViz3 complete ===");
+  // Only animate while the container is visible — stops the d3.timer (and its
+  // continuous data updates) the moment the user scrolls away.
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries[0].isIntersecting;
+      if (visible) {
+        if (isPlaying && !animationTimer) {
+          startAutoPlay();
+        }
+      } else {
+        if (animationTimer) {
+          animationTimer.stop();
+          animationTimer = null;
+        }
+      }
+    },
+    { threshold: 0.1 },
+  );
+  observer.observe(container);
 }
 
