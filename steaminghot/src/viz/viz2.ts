@@ -38,7 +38,6 @@ function toRow(g: Game): Viz2Row {
   };
 }
 
-// compute scales for each y-axis
 function buildYScales(rows: Viz2Row[], h: number): Map<Viz2RowKey, AnyScale> {
   const scales = new Map<Viz2RowKey, AnyScale>();
   for (const { key, log } of DIMS) {
@@ -58,7 +57,6 @@ function buildYScales(rows: Viz2Row[], h: number): Map<Viz2RowKey, AnyScale> {
 }
 
 export function initViz2(container: HTMLElement, data: Game[]): void {
-  // filter out games outlier games and map to rows
   const rows = data
     .filter(
       (g) => g.positive + g.negative >= MIN_REVIEWS && g.price <= MAX_PRICE,
@@ -85,7 +83,6 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
   genreWrapper.appendChild(tagSelect);
   container.parentElement?.insertBefore(genreWrapper, container);
 
-  // set up graph dimensions
   const totalW = container.clientWidth || 960;
   const totalH = 520;
   const w = totalW - MARGIN.left - MARGIN.right;
@@ -123,7 +120,6 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
   const yScales = buildYScales(rows, h);
   const colorOf = d3.scaleSequential(d3.interpolateRdYlGn).domain([0, 1]);
 
-  // for each game, compute its path from y-values and get colour from positive ratio
   for (const row of rows) {
     row.color = colorOf(row.positiveRatio / 100);
     row.yValues = dims.map(({ key, log }) =>
@@ -138,7 +134,6 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
     row.path = path;
   }
 
-  // user-selected intervals for each y-axis
   const selectedIntervals = new Map<Viz2RowKey, [number, number] | null>(
     DIMS.map((d) => [d.key, null]),
   );
@@ -148,20 +143,20 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
       const interval = selectedIntervals.get(DIMS[i].key);
       if (!interval) continue;
       const y = row.yValues[i];
-      if (y < Math.min(...interval) || y > Math.max(...interval)) return false;
+      // d3.brushY always yields [y_top, y_bottom] so interval[0] < interval[1]
+      if (y < interval[0] || y > interval[1]) return false;
     }
     return true;
   }
 
   let selectedTag: string | null = null;
 
-  // filter out games based on user selection
   function visibleGameRows(limit: number | null): Viz2Row[] {
     const source = selectedTag
       ? rows.filter((r) => r.tags.includes(selectedTag!))
       : rows;
     const anyInterval = [...selectedIntervals.values()].some(Boolean);
-    if (!anyInterval) return source;
+    if (!anyInterval) return limit !== null ? source.slice(0, limit) : source;
     const result: Viz2Row[] = [];
     for (const row of source) {
       if (!isSelected(row)) continue;
@@ -171,43 +166,81 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
     return result;
   }
 
+  // Offscreen canvases: built once per filter change, reused for every redraw.
+  let offNormal: OffscreenCanvas | null = null;
+  let offDimmed: OffscreenCanvas | null = null;
+  // Cached visible set for hit-testing (kept in sync with offscreen canvases).
+  let cachedVisible: Viz2Row[] = [];
   let batchClearing = false;
 
-  function draw(limit: number | null = null) {
+  // Fast draw: just blit the pre-built offscreen.
+  // During brush preview, fall back to a limited direct draw.
+  function draw(previewLimit?: number) {
     if (batchClearing) return;
     ctx.clearRect(0, 0, totalW, totalH);
-    ctx.save();
-    ctx.translate(MARGIN.left, MARGIN.top);
-    ctx.globalAlpha = 0.35;
-    ctx.lineWidth = 1.2;
-    for (const row of visibleGameRows(limit)) {
-      ctx.strokeStyle = row.color;
-      ctx.stroke(row.path);
-    }
-    ctx.restore();
-  }
-
-  // time-sliced version: strokes for ~12ms then yields a frame so animations keep running
-  async function drawAsync() {
-    const visible = visibleGameRows(null);
-    ctx.clearRect(0, 0, totalW, totalH);
-    ctx.save();
-    ctx.translate(MARGIN.left, MARGIN.top);
-    ctx.globalAlpha = 0.35;
-    ctx.lineWidth = 1.2;
-    let frameEnd = performance.now() + 12;
-    for (const row of visible) {
-      ctx.strokeStyle = row.color;
-      ctx.stroke(row.path);
-      if (performance.now() >= frameEnd) {
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-        frameEnd = performance.now() + 12;
+    if (previewLimit !== undefined) {
+      ctx.save();
+      ctx.translate(MARGIN.left, MARGIN.top);
+      ctx.globalAlpha = 0.35;
+      ctx.lineWidth = 1.2;
+      for (const row of visibleGameRows(previewLimit)) {
+        ctx.strokeStyle = row.color;
+        ctx.stroke(row.path);
       }
+      ctx.restore();
+    } else if (offNormal) {
+      ctx.drawImage(offNormal, 0, 0);
     }
+  }
+
+  // O(1) hover redraw: blit dimmed offscreen then stroke the single highlighted line.
+  function drawHover(hovered: Viz2Row) {
+    ctx.clearRect(0, 0, totalW, totalH);
+    if (offDimmed) ctx.drawImage(offDimmed, 0, 0);
+    ctx.save();
+    ctx.translate(MARGIN.left, MARGIN.top);
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = hovered.color;
+    ctx.stroke(hovered.path);
     ctx.restore();
   }
 
-  // render axes and selections
+  // Build both offscreen canvases in one synchronous pass so all lines appear at once.
+  function rebuildAndDraw() {
+    if (batchClearing) return;
+    cachedVisible = visibleGameRows(null);
+
+    const oc1 = new OffscreenCanvas(totalW, totalH);
+    const n = oc1.getContext("2d")!;
+    n.save();
+    n.translate(MARGIN.left, MARGIN.top);
+    n.globalAlpha = 0.35;
+    n.lineWidth = 1.2;
+
+    const oc2 = new OffscreenCanvas(totalW, totalH);
+    const d = oc2.getContext("2d")!;
+    d.save();
+    d.translate(MARGIN.left, MARGIN.top);
+    d.globalAlpha = 0.08;
+    d.lineWidth = 1.2;
+
+    for (const row of cachedVisible) {
+      n.strokeStyle = row.color;
+      n.stroke(row.path);
+      d.strokeStyle = row.color;
+      d.stroke(row.path);
+    }
+
+    n.restore();
+    d.restore();
+    offNormal = oc1;
+    offDimmed = oc2;
+    ctx.clearRect(0, 0, totalW, totalH);
+    ctx.drawImage(offNormal, 0, 0);
+  }
+
+  // axes
   const axisGs = svg
     .selectAll<SVGGElement, (typeof dims)[0]>(".dim")
     .data(dims)
@@ -284,7 +317,11 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
             topLabel.style("visibility", "hidden");
             bottomLabel.style("visibility", "hidden");
           }
-          draw(event.type === "end" ? null : PREVIEW_LIMIT);
+          if (event.type === "end") {
+            rebuildAndDraw();
+          } else {
+            draw(PREVIEW_LIMIT);
+          }
         });
 
       const brushG = d3.select(this);
@@ -306,7 +343,7 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
     batchClearing = true;
     brushClearFns.forEach((fn) => fn());
     batchClearing = false;
-    await drawAsync();
+    rebuildAndDraw();
     clearBtn.textContent = "Clear selections";
     clearBtn.disabled = false;
   });
@@ -347,87 +384,103 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
       .text(label),
   );
 
-  // hover: dim all lines except the hovered one
-  function drawHover(hovered: Viz2Row) {
-    const visible = visibleGameRows(null);
-    ctx.clearRect(0, 0, totalW, totalH);
-    ctx.save();
-    ctx.translate(MARGIN.left, MARGIN.top);
-    ctx.lineWidth = 1.2;
-    ctx.globalAlpha = 0.08;
-    for (const row of visible) {
-      if (row === hovered) continue;
-      ctx.strokeStyle = row.color;
-      ctx.stroke(row.path);
-    }
-    ctx.globalAlpha = 1;
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = hovered.color;
-    ctx.stroke(hovered.path);
-    ctx.restore();
-  }
-
   const tooltip = document.createElement("div");
   tooltip.className = "viz2-tooltip";
   container.appendChild(tooltip);
 
   let hoveredRow: Viz2Row | null = null;
-  let tooltipTimer: ReturnType<typeof setTimeout> | null = null;
-  let lastMouse = { x: 0, y: 0 };
 
-  container.addEventListener("mousemove", (e) => {
-    if (batchClearing) return;
-    const rect = container.getBoundingClientRect();
-    lastMouse = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    const mx = lastMouse.x - MARGIN.left;
-    const my = lastMouse.y - MARGIN.top;
+  // RAF-throttled hover: only one processHover per animation frame.
+  let moveRafId: number | null = null;
+  let pendingMx = 0;
+  let pendingMy = 0;
+
+  // Spatial pre-filter + isPointInStroke hit test.
+  // Paths live in [0,w]×[0,h] space; mx/my must be in that same space.
+  function hitTest(mx: number, my: number): Viz2Row | null {
+    // Find the axis segment the mouse is between.
+    let segIdx = -1;
+    for (let i = 0; i < dims.length - 1; i++) {
+      if (mx >= dims[i].x - 8 && mx <= dims[i + 1].x + 8) {
+        segIdx = i;
+        break;
+      }
+    }
+    if (segIdx === -1) return null;
+
+    // Interpolation fraction along the segment.
+    const t = Math.max(
+      0,
+      Math.min(1, (mx - dims[segIdx].x) / (dims[segIdx + 1].x - dims[segIdx].x)),
+    );
+    // Pre-filter threshold: lineWidth/2 (5px) + small buffer.
+    const THRESH = 8;
 
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.lineWidth = 10;
     let found: Viz2Row | null = null;
-    for (const row of visibleGameRows(null)) {
+    for (const row of cachedVisible) {
+      const yInterp =
+        row.yValues[segIdx] * (1 - t) + row.yValues[segIdx + 1] * t;
+      if (Math.abs(yInterp - my) >= THRESH) continue;
       if (ctx.isPointInStroke(row.path, mx, my)) {
         found = row;
         break;
       }
     }
     ctx.restore();
+    return found;
+  }
 
-    if (found === hoveredRow) {
-      if (tooltip.style.display === "block") {
-        const overflows = lastMouse.x + 14 + tooltip.offsetWidth > container.clientWidth;
-        tooltip.style.left = overflows
-          ? `${lastMouse.x - 14 - tooltip.offsetWidth}px`
-          : `${lastMouse.x + 14}px`;
-        tooltip.style.top = `${lastMouse.y - 12}px`;
-      }
-      return;
-    }
+  function showTooltip(row: Viz2Row, screenX: number, screenY: number) {
+    tooltip.textContent = row.name;
+    tooltip.style.display = "block";
+    const overflows = screenX + 14 + tooltip.offsetWidth > container.clientWidth;
+    tooltip.style.left = overflows
+      ? `${screenX - 14 - tooltip.offsetWidth}px`
+      : `${screenX + 14}px`;
+    tooltip.style.top = `${screenY - 12}px`;
+  }
 
+  function processHover(mx: number, my: number) {
+    if (batchClearing) return;
+    const found = hitTest(mx, my);
+    if (found === hoveredRow) return;
     hoveredRow = found;
-    if (tooltipTimer) { clearTimeout(tooltipTimer); tooltipTimer = null; }
-    tooltip.style.display = "none";
-
     if (found) {
       drawHover(found);
-      tooltipTimer = setTimeout(() => {
-        if (!hoveredRow) return;
-        tooltip.textContent = hoveredRow.name;
-        tooltip.style.display = "block";
-        const overflows = lastMouse.x + 14 + tooltip.offsetWidth > container.clientWidth;
-        tooltip.style.left = overflows
-          ? `${lastMouse.x - 14 - tooltip.offsetWidth}px`
-          : `${lastMouse.x + 14}px`;
-        tooltip.style.top = `${lastMouse.y - 12}px`;
-      }, 500);
+      showTooltip(found, mx + MARGIN.left, my + MARGIN.top);
     } else {
       draw();
+      tooltip.style.display = "none";
+    }
+  }
+
+  container.addEventListener("mousemove", (e) => {
+    if (batchClearing) return;
+    const rect = container.getBoundingClientRect();
+    pendingMx = e.clientX - rect.left - MARGIN.left;
+    pendingMy = e.clientY - rect.top - MARGIN.top;
+
+    // Keep tooltip position in sync on every move without waiting for RAF.
+    if (tooltip.style.display === "block") {
+      showTooltip(hoveredRow!, e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    if (moveRafId === null) {
+      moveRafId = requestAnimationFrame(() => {
+        moveRafId = null;
+        processHover(pendingMx, pendingMy);
+      });
     }
   });
 
   container.addEventListener("mouseleave", () => {
-    if (tooltipTimer) { clearTimeout(tooltipTimer); tooltipTimer = null; }
+    if (moveRafId !== null) {
+      cancelAnimationFrame(moveRafId);
+      moveRafId = null;
+    }
     tooltip.style.display = "none";
     hoveredRow = null;
     draw();
@@ -437,8 +490,8 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
     selectedTag = tagSelect.value || null;
     hoveredRow = null;
     tooltip.style.display = "none";
-    draw();
+    rebuildAndDraw();
   });
 
-  draw();
+  rebuildAndDraw();
 }
