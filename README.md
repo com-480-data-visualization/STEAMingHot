@@ -7,6 +7,8 @@
 | Lorie Xu | 327573 |
 | Valentin Porchet | 347219 |
 
+Link to the webpage: https://com-480-data-visualization.github.io/STEAMingHot/   
+
 [Milestone 1](milestones/Milestone1.pdf) • [Milestone 2](milestones/Milestone2.pdf) • **Milestone 3 to be added !!!!!!**
 ## Project description
 ### Introduction
