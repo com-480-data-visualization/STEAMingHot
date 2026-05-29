@@ -9,7 +9,7 @@
 
 Link to the webpage: https://com-480-data-visualization.github.io/STEAMingHot/   
 
-[Milestone 1](milestones/Milestone1.pdf) • [Milestone 2](milestones/Milestone2.pdf) • **Milestone 3 to be added !!!!!!**
+[Milestone 1](milestones/Milestone1.pdf) • [Milestone 2](milestones/Milestone2.pdf) • [Milestone 3 Process Book](milestones/Steaming_Dev_Gossip_Design_Process_Book.pdf)
 ## Project description
 ### Introduction
 The goal of this project is to help game developers and publishers to better understand what makes a game successful on the Steam platform. To do so, we have scrapped a large dataset of games and their attributes from the Steam store, and we have built a web application that allows to explore this dataset through different visualizations. The web application is built with TypeScript and D3.js, and it is deployed on GitHub Pages.
