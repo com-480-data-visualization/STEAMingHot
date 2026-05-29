@@ -435,4 +435,6 @@ export function initViz4(container: HTMLElement, data: Game[]): void {
   syncLegend();
   render();
   syncAddBtn();
+
+  console.log("Visualization 4 initialized");
 }

@@ -62,8 +62,7 @@ function buildLabelYearMap(data: GenreYearData[]): Map<string, Map<number, numbe
 }
 
 export function initViz3(container: HTMLElement, data: Game[]): void {
-  console.log("=== initViz3 called ===");
-  console.log("Data received:", data.length, "games");
+  
 
   if (!data || data.length === 0) {
     container.innerHTML = "<p>No data available</p>";
@@ -121,10 +120,8 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
   let years = Array.from(new Set(filteredData.map((d) => d.year))).sort(
     (a, b) => a - b
   );
-  console.log("Years:", years);
 
   let genres = Array.from(new Set(filteredData.map((d) => d.genre))); // Create color scale for genres
-  console.log("Genres:", genres);
 
   function interpolateYearData(yearValue: number): GenreYearData[] {
     const lower = Math.floor(yearValue);
@@ -293,8 +290,6 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     .style("border", "2px solid #fff")
     .style("display", "block");
 
-  console.log("SVG created");
-
   const g = svg
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -413,7 +408,6 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
       .text((d) => d.genre);
   }
 
-  console.log("Initializing with first year:", years[0]);
   let currentYear = years[0];
   let animationTimer: d3.Timer | null = null;
   let isUserInteracting = false;
@@ -512,5 +506,7 @@ export function initViz3(container: HTMLElement, data: Game[]): void {
     { threshold: 0.1 },
   );
   observer.observe(container);
+
+  console.log("Visualization 3 initialized");
 }
 

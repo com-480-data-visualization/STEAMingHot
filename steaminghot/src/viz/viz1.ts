@@ -377,7 +377,6 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
     !suggestionsContainer ||
     !noResultsContainer
   ) {
-    console.error("Search UI elements not found");
     return;
   }
 
@@ -510,5 +509,5 @@ export function initViz1(container: HTMLElement, data: Game[]): void {
     });
   }
 
-  console.log("Viz1 initialized");
+  console.log("Visualization 1 initialized");
 }

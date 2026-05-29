@@ -494,4 +494,6 @@ export function initViz2(container: HTMLElement, data: Game[]): void {
   });
 
   rebuildAndDraw();
+
+  console.log("Visualization 2 initialized");
 }
