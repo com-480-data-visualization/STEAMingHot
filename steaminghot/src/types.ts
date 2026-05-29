@@ -33,29 +33,33 @@ export interface Game {
   dlc_count: number;
   short_description: string;
   header_image: string;
-  windows: boolean;
-  mac: boolean;
-  linux: boolean;
   metacritic_score: number;
-  metacritic_url: string;
   achievements: number;
   recommendations: number;
-  notes: string;
-  supported_languages: string[];
-  full_audio_languages: string[];
   developers: string[];
   publishers: string[];
-  categories: string[];
   genres: string[];
-  movies: string[];
   positive: number;
   negative: number;
   estimated_owners: string;
   average_playtime_forever: number;
-  average_playtime_2weeks: number;
   median_playtime_forever: number;
   median_playtime_2weeks: number;
-  discount: string;
   peak_ccu: number;
   tags: Record<string, number>;
+  // The following fields where not used in our visualizations, but could have 
+  // been used for further analysis or visualizations. They are dropped during preprocessing
+  // but could be included in the future if needed.
+
+  // windows: boolean;
+  // mac: boolean;
+  // linux: boolean;
+  // metacritic_url: string;
+  // notes: string;
+  // supported_languages: string[];
+  // full_audio_languages: string[];
+  // categories: string[];
+  // movies: string[];
+  // average_playtime_2weeks: number;
+  // discount: string;
 }

@@ -44,7 +44,20 @@ if __name__ == "__main__":
             'user_score', # only 40 games have it
             'screenshots', # take an extreme amount of space, header image is enough
             'packages', #unused and very verbose
-            # 'metacritic_url', # could be actually useful, only takes 2.5mb on full dataset
+
+            # The following fields are not necessarily bad, but are unused in our current website
+            # we drop them for now to save space and speed up loading
+            'windows',
+            'mac',
+            'linux',
+            'metacritic_url',
+            'notes',
+            'supported_languages',
+            'full_audio_languages',
+            'categories',
+            'movies',
+            'average_playtime_2weeks',
+            'discount', 
         ],
         game_validation_predicates=[
             # lambda game: (game.positive + game.negative) >= 50,
